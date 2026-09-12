@@ -8,7 +8,7 @@ irisSummaryRouter.get("/iris/summary", requireAuth, async (req: AuthedRequest, r
   try {
     const { data: run, error: runError } = await supabaseAdmin
       .from("iris_runs")
-      .select("id,status,created_at,completed_at,failure_code,failure_message")
+      .select("id,status,certification_hash,created_at,completed_at,failure_code,failure_message")
       .eq("user_id", req.userId!)
       .order("created_at", { ascending: false })
       .limit(1)
@@ -16,7 +16,18 @@ irisSummaryRouter.get("/iris/summary", requireAuth, async (req: AuthedRequest, r
     if (runError) throw runError;
     if (!run) return res.status(503).json({ error: "Iris has not executed a governed intelligence run yet", certified: false, run_id: null, status: "NOT_RUN" });
 
-    const { data: execution } = await supabaseAdmin
+    const certified = run.status === "CERTIFIED" && typeof run.certification_hash === "string" && run.certification_hash.length > 0;
+    if (!certified) {
+      return res.status(409).json({
+        error: "Iris intelligence is not certified for publication",
+        certified: false,
+        run_id: run.id,
+        status: run.status,
+        publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false },
+      });
+    }
+
+    const { data: execution, error: executionError } = await supabaseAdmin
       .from("iris_execution_records")
       .select("id")
       .eq("run_id", run.id)
@@ -24,7 +35,8 @@ irisSummaryRouter.get("/iris/summary", requireAuth, async (req: AuthedRequest, r
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
-    if (!execution) return res.status(503).json({ error: "The latest Iris run has no execution record", certified: false, run_id: run.id, status: run.status });
+    if (executionError) throw executionError;
+    if (!execution) return res.status(409).json({ error: "Certified Iris run has no execution record", certified: false, run_id: run.id, status: run.status });
 
     const { data: output, error: outputError } = await supabaseAdmin
       .from("iris_execution_outputs")
@@ -34,14 +46,14 @@ irisSummaryRouter.get("/iris/summary", requireAuth, async (req: AuthedRequest, r
       .limit(1)
       .maybeSingle();
     if (outputError) throw outputError;
-    if (!output?.value) return res.status(503).json({ error: "The latest Iris run has no persisted intelligence output", certified: false, run_id: run.id, execution_id: execution.id, status: run.status, failure_code: run.failure_code ?? null, failure_message: run.failure_message ?? null });
+    if (!output?.value) return res.status(409).json({ error: "Certified Iris run has no persisted intelligence output", certified: false, run_id: run.id, execution_id: execution.id, status: run.status });
 
     const full = output.value as any;
     const metrics = full.layer_metrics ?? {};
     res.json({
       run_id: run.id ?? null,
       execution_id: execution.id ?? null,
-      certified: run.status === "CERTIFIED",
+      certified: true,
       run_status: run.status,
       failure_code: run.failure_code ?? null,
       failure_message: run.failure_message ?? null,
