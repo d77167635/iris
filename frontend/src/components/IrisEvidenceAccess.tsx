@@ -6,23 +6,21 @@ import "./IrisEvidenceAccess.css";
 
 type Props = { go?: (page: string) => void };
 
-/**
- * Evidence connection surface.
- * Existing provider Items remain persisted and untouched. A new connection
- * uses the governed Plaid Link flow already used by the application.
- */
 export function IrisEvidenceAccess({ go }: Props) {
   const [items, setItems] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const loadItems = useCallback(async () => {
     setLoadingItems(true);
+    setError(null);
     try {
       const surface = await api.getPlaidSurface();
       setItems(Array.isArray(surface?.items) ? surface.items : []);
-    } catch {
+    } catch (err) {
       setItems([]);
+      setError(err instanceof Error ? err.message : "Connected evidence could not be loaded.");
     } finally {
       setLoadingItems(false);
     }
@@ -33,11 +31,12 @@ export function IrisEvidenceAccess({ go }: Props) {
   const resync = async () => {
     if (refreshing) return;
     setRefreshing(true);
+    setError(null);
     try {
       await api.resync();
       await loadItems();
-    } catch {
-      // Do not create a fallback record when provider refresh is unavailable.
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Provider evidence refresh failed. No fallback data was created.");
     } finally {
       setRefreshing(false);
     }
@@ -58,6 +57,7 @@ export function IrisEvidenceAccess({ go }: Props) {
           <p>New provider connections use the governed Plaid Link flow. Existing Plaid Items remain persisted and are not replaced or deleted by opening a new connection.</p>
           <PlaidLinkButton onSuccess={() => void loadItems()} />
           <button type="button" className="iea-later" onClick={() => void resync()} disabled={refreshing}>{refreshing ? "Refreshing existing evidence…" : "Refresh existing evidence"}</button>
+          {error && <div className="plaid-connect-error" role="alert"><span>{error}</span><button type="button" onClick={() => void loadItems()} disabled={loadingItems}>Retry</button></div>}
           <div className="iea-boundary">
             <div><b>OBSERVED</b><span>Provider responses become evidence only after they are actually received and persisted.</span></div>
             <div><b>GOVERNED</b><span>Evidence stays tied to the authenticated user and exact Item boundary.</span></div>
@@ -72,7 +72,7 @@ export function IrisEvidenceAccess({ go }: Props) {
       </section>
       <section className="iea-items">
         <div><span className="iea-kicker">CONTINUE</span><h2>Continue through your financial life.</h2><p>Use the Financial Life, Reports and Intelligence surfaces to inspect persisted provider evidence and governed results.</p></div>
-        <div className="iris-journey-actions"><button type="button" onClick={() => go?.("iris")}>Financial Life →</button><button type="button" onClick={() => go?.("iris/catalog")}>Reports →</button><button type="button" onClick={() => go?.("iris/intelligence")}>Intelligence Education →</button></div>
+        <div className="iris-journey-actions"><button type="button" onClick={() => go?.("iris")}>Financial Life →</button><button type="button" onClick={() => go?.("iris/catalog")}>Reports →</button><button type="button" onClick={() => go?.("iris/intelligence")}>Intelligence →</button></div>
       </section>
     </main>
   );
