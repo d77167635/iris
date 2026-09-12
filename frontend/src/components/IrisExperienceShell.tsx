@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { IrisAssistant } from "./IrisAssistant";
+import { flattenWorkspaceRegistry, irisWorkspaceRegistry } from "./irisWorkspaceRegistry";
 
 export type IrisJourneySurface = { page: string; label: string; description: string };
 type Props = { page: string; go: (page: string) => void; children: ReactNode };
@@ -32,6 +33,7 @@ const journey = [
 
 export function IrisExperienceShell({ page, go, children }: Props) {
   const active = navigation.find((item) => item.page === page)?.page ?? (page.startsWith("iris/intelligence/") ? "iris/intelligence" : "iris");
+  const workspaceNodes = flattenWorkspaceRegistry();
   return <div className="iris-experience-shell">
     <header className="ies-topbar">
       <button className="ies-brand" type="button" onClick={() => go("iris")} aria-label="Go to your IRIS financial life"><span className="ies-brand-mark" aria-hidden="true">I</span><span><strong>IRIS</strong><small>RELATIONAL FINANCIAL INTELLIGENCE</small></span></button>
@@ -41,6 +43,17 @@ export function IrisExperienceShell({ page, go, children }: Props) {
       </section>
       <div className="ies-top-actions"><button type="button" onClick={() => go("iris/evidence")}>Evidence</button><button type="button" onClick={() => go("iris/reasoning")}>Ask / Understand</button><button className="ies-connect" type="button" onClick={() => go("iris/connect")}>Connect evidence</button></div>
     </header>
+    <section className="ies-workspace-index" aria-label="All IRIS financial-life workspace surfaces">
+      <span className="ies-workspace-index-label">ALL FINANCIAL-LIFE SURFACES</span>
+      <nav className="ies-workspace-index-nav">
+        {workspaceNodes.map((item) => {
+          const isRoot = irisWorkspaceRegistry.some((root) => root.id === item.id);
+          return <button key={item.id} type="button" className={page === item.id ? "active" : ""} onClick={() => go(item.id)} aria-current={page === item.id ? "page" : undefined} data-root={isRoot ? "true" : "false"}>
+            <strong>{item.label}</strong><span>{item.description}</span>
+          </button>;
+        })}
+      </nav>
+    </section>
     <div className="ies-journey" aria-label="IRIS financial-life journey"><span className="ies-journey-label">IRIS · RECURSIVE JOURNEY</span>{journey.map((item, index) => <span key={item.page} className={page === item.page ? "active" : ""}><button type="button" onClick={() => go(item.page)} aria-current={page === item.page ? "step" : undefined}>{item.label}</button>{index < journey.length - 1 && <i aria-hidden="true">→</i>}</span>)}</div>
     <main className="ies-content">{children}</main>
     <IrisAssistant />
