@@ -69,68 +69,10 @@ dashboardRouter.get("/dashboard/intelligence", requireAuth, async (req: AuthedRe
     const full = run.result;
     if (!full) return res.status(503).json({ error: "Iris intelligence is temporarily unavailable", certified: false, run_id: run.id ?? null });
     const metrics = full.layer_metrics;
-    const certified = run.status === "CERTIFIED" && run.certified === true;
-    if (!certified) {
-      return res.status(409).json({
-        error: "Iris intelligence is not certified for publication",
-        certified: false,
-        run_id: run.id ?? null,
-        execution_id: run.execution_id ?? null,
-        certification_gate: run.certification_gate ?? null,
-        publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false },
-      });
-    }
+    const certified = run.status === "CERTIFIED" && run.certified === true && typeof run.certification_hash === "string" && run.certification_hash.length > 0;
+    if (!certified) return res.status(409).json({ error: "Iris intelligence is not certified for publication", certified: false, run_id: run.id ?? null, execution_id: run.execution_id ?? null, certification_gate: run.certification_gate ?? null, publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false } });
     const publication = await buildIrisPublicationContext(req.userId!, full.intelligence_atlas?.definitions ?? [], { runId: run.id ?? null, executionId: run.execution_id ?? null, executionStatus: run.status ?? null });
-    res.json({
-      run_id: run.id ?? null,
-      execution_id: run.execution_id ?? null,
-      certified: true,
-      certification_gate: run.certification_gate ?? null,
-      narrative: full.narrative,
-      generated_at: full.generated_at,
-      net_worth: metrics.net_worth,
-      debt_health: { ...metrics.debt_health, interest_cost_attribution: full.layer_debt_cost },
-      cash_flow_safety: metrics.cash_flow_safety,
-      roundup_projection: metrics.roundup_projection,
-      cash_flow: metrics.cash_flow,
-      spending_by_domain: metrics.spending_by_domain,
-      balance_history: metrics.balance_history,
-      forward_projection: metrics.forward_projection,
-      anomalies: metrics.anomalies,
-      spending_hierarchy: metrics.spending_hierarchy,
-      category_drift: full.layer_behavioral.categoryDrift,
-      reasoning: full.layer_reasoning,
-      temporal: full.layer_temporal,
-      maximum_intelligence: full.layer_max_intelligence,
-      feature_flags: full.feature_flags,
-      provider_lineage: full.provider_lineage,
-      integrity: full.integrity,
-      source_fidelity: full.source_fidelity,
-      intelligence_gate: full.intelligence_gate,
-      evidence_boundary: full.evidence_boundary,
-      evidence_graph: full.evidence_graph,
-      intelligence_graph: full.intelligence_graph,
-      investigations: full.investigations,
-      uncertainty: full.uncertainty,
-      financial_state: full.financial_state,
-      causal_analysis: full.causal_analysis,
-      decision_graph: full.decision_graph,
-      decision_intelligence: full.decision_intelligence,
-      consequence_model: full.consequence_model,
-      optimization_intelligence: full.optimization_intelligence,
-      goal_intelligence: full.goal_intelligence,
-      intelligence_atlas: full.intelligence_atlas,
-      intelligence_composition: full.intelligence_composition,
-      layer_composition: full.layer_composition,
-      higher_order_synthesis: full.higher_order_synthesis,
-      adversarial_reasoning: full.adversarial_reasoning,
-      counterfactual_intelligence: full.counterfactual_intelligence,
-      meta_intelligence: full.meta_intelligence,
-      selected_report_ids: publication.selected_report_ids,
-      feature_runtime: publication.feature_runtime,
-      intelligence_output_runtime: publication.intelligence_output_runtime,
-      publication_boundary: publication.publication_boundary,
-    });
+    res.json({ run_id: run.id ?? null, execution_id: run.execution_id ?? null, certified: true, certification_hash: run.certification_hash, certification_gate: run.certification_gate ?? null, narrative: full.narrative, generated_at: full.generated_at, net_worth: metrics.net_worth, debt_health: { ...metrics.debt_health, interest_cost_attribution: full.layer_debt_cost }, cash_flow_safety: metrics.cash_flow_safety, roundup_projection: metrics.roundup_projection, cash_flow: metrics.cash_flow, spending_by_domain: metrics.spending_by_domain, balance_history: metrics.balance_history, forward_projection: metrics.forward_projection, anomalies: metrics.anomalies, spending_hierarchy: metrics.spending_hierarchy, category_drift: full.layer_behavioral.categoryDrift, reasoning: full.layer_reasoning, temporal: full.layer_temporal, maximum_intelligence: full.layer_max_intelligence, feature_flags: full.feature_flags, provider_lineage: full.provider_lineage, integrity: full.integrity, source_fidelity: full.source_fidelity, intelligence_gate: full.intelligence_gate, evidence_boundary: full.evidence_boundary, evidence_graph: full.evidence_graph, intelligence_graph: full.intelligence_graph, investigations: full.investigations, uncertainty: full.uncertainty, financial_state: full.financial_state, causal_analysis: full.causal_analysis, decision_graph: full.decision_graph, decision_intelligence: full.decision_intelligence, consequence_model: full.consequence_model, optimization_intelligence: full.optimization_intelligence, goal_intelligence: full.goal_intelligence, intelligence_atlas: full.intelligence_atlas, intelligence_composition: full.intelligence_composition, layer_composition: full.layer_composition, higher_order_synthesis: full.higher_order_synthesis, adversarial_reasoning: full.adversarial_reasoning, counterfactual_intelligence: full.counterfactual_intelligence, meta_intelligence: full.meta_intelligence, selected_report_ids: publication.selected_report_ids, feature_runtime: publication.feature_runtime, intelligence_output_runtime: publication.intelligence_output_runtime, publication_boundary: publication.publication_boundary });
   } catch (err) { console.error("dashboard/intelligence error:", err); res.status(500).json({ error: "Failed to compute intelligence metrics" }); }
 });
 
@@ -144,13 +86,7 @@ dashboardRouter.get("/dashboard/intelligence/governance", requireAuth, async (re
 
 const PLAID_STANDARD_PRODUCTS = ["auth", "transactions", "balance", "identity", "assets", "liabilities", "investments", "statements"] as const;
 type ProductObservationRow = { item_id: string; product: string; lifecycle_state: string; evidence_state: string; is_current: boolean; acquired_at: string | null };
-function dashboardProductStatus(row: ProductObservationRow | undefined): "observed" | "authorized" | "available" | "not_observed" {
-  if (!row) return "not_observed";
-  if (row.lifecycle_state === "observed" && row.evidence_state === "observed") return "observed";
-  if (row.lifecycle_state === "authorized") return "authorized";
-  if (row.lifecycle_state === "available") return "available";
-  return "not_observed";
-}
+function dashboardProductStatus(row: ProductObservationRow | undefined): "observed" | "authorized" | "available" | "not_observed" { if (!row) return "not_observed"; if (row.lifecycle_state === "observed" && row.evidence_state === "observed") return "observed"; if (row.lifecycle_state === "authorized") return "authorized"; if (row.lifecycle_state === "available") return "available"; return "not_observed"; }
 
 dashboardRouter.get("/dashboard/plaid", requireAuth, async (req: AuthedRequest, res) => {
   const userId = req.userId!;
@@ -166,5 +102,11 @@ dashboardRouter.get("/dashboard/plaid", requireAuth, async (req: AuthedRequest, 
 dashboardRouter.post("/dashboard/scenario", requireAuth, async (req: AuthedRequest, res) => {
   const { type, amount } = req.body as { type?: "spending_change" | "bill_change" | "income_change"; amount?: number };
   if (!type || !["spending_change", "bill_change", "income_change"].includes(type) || typeof amount !== "number") return res.status(400).json({ error: "type must be spending_change/bill_change/income_change, amount must be a number" });
-  try { res.json(await computeCanonicalScenario(req.userId!, type, amount)); } catch (err) { console.error("dashboard/scenario error:", err); res.status(500).json({ error: "Failed to compute scenario" }); }
+  try {
+    const { data: run, error: runError } = await supabaseAdmin.from("iris_runs").select("id,status,certification_hash").eq("user_id", req.userId!).order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (runError) throw runError;
+    const certified = run?.status === "CERTIFIED" && typeof run.certification_hash === "string" && run.certification_hash.length > 0;
+    if (!certified) return res.status(409).json({ error: "Iris intelligence is not certified for publication", certified: false, run_id: run?.id ?? null, status: run?.status ?? "NOT_RUN", publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false } });
+    res.json({ ...(await computeCanonicalScenario(req.userId!, type, amount)), certified: true, run_id: run.id, certification_hash: run.certification_hash });
+  } catch (err) { console.error("dashboard/scenario error:", err); res.status(500).json({ error: "Failed to compute scenario" }); }
 });
