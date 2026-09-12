@@ -9,6 +9,8 @@ import { IrisCatalog } from "./components/IrisCatalog";
 import { IrisActionOutcome } from "./components/IrisActionOutcome";
 import { IrisEvidenceAccess } from "./components/IrisEvidenceAccess";
 import { IrisExperienceShell } from "./components/IrisExperienceShell";
+import { IrisWorkspaceSurface } from "./components/IrisWorkspaceSurface";
+import { findWorkspace } from "./components/irisWorkspaceRegistry";
 import "./iris-command-deck.css";
 import "./components/IrisExperienceShell.css";
 import "./iris-ui.css";
@@ -37,6 +39,7 @@ export default function App() {
   if (!session) return <Auth />;
   const account = <div className="ia-account-control"><span aria-label="Signed-in account" className="ia-account-email">{session.user.email ?? "Signed in"}</span><button aria-label="Sign out" type="button" onClick={() => void signOut()} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button></div>;
   const isIntelligencePage = irisPage === "iris/intelligence" || irisPage.startsWith("iris/intelligence/");
-  const content = irisPage === "iris/connect" ? <IrisEvidenceAccess go={navigate} /> : irisPage === "iris/catalog" ? <IrisCatalog go={navigate} /> : irisPage === "iris/action" ? <IrisActionOutcome mode="action" go={navigate} /> : irisPage === "iris/outcomes" ? <IrisActionOutcome mode="outcomes" go={navigate} /> : isIntelligencePage ? <IrisIntelligenceSurface page={irisPage} go={navigate} /> : irisPage === "iris" ? <IrisFinancialLifeJourney go={navigate} /> : <IrisCommandSurface page={irisPage} go={navigate} />;
+  const isSpecialPage = irisPage === "iris" || irisPage === "iris/connect" || irisPage === "iris/catalog" || irisPage === "iris/action" || irisPage === "iris/outcomes" || isIntelligencePage || irisPage === "iris/behavior" || irisPage === "iris/reasoning" || irisPage === "iris/evidence" || irisPage === "iris/state" || irisPage === "iris/cash-flow" || irisPage === "iris/spending";
+  const content = irisPage === "iris/connect" ? <IrisEvidenceAccess go={navigate} /> : irisPage === "iris/catalog" ? <IrisCatalog go={navigate} /> : irisPage === "iris/action" ? <IrisActionOutcome mode="action" go={navigate} /> : irisPage === "iris/outcomes" ? <IrisActionOutcome mode="outcomes" go={navigate} /> : isIntelligencePage ? <IrisIntelligenceSurface page={irisPage} go={navigate} /> : irisPage === "iris" ? <IrisFinancialLifeJourney go={navigate} /> : isSpecialPage ? <IrisCommandSurface page={irisPage} go={navigate} /> : findWorkspace(irisPage) ? <IrisWorkspaceSurface page={irisPage} go={navigate} /> : <IrisWorkspaceSurface page={irisPage} go={navigate} />;
   return <IrisExperienceShell page={irisPage} go={navigate}><div className="app-workspace app-workspace-iris">{content}{account}</div></IrisExperienceShell>;
 }
