@@ -69,11 +69,22 @@ dashboardRouter.get("/dashboard/intelligence", requireAuth, async (req: AuthedRe
     const full = run.result;
     if (!full) return res.status(503).json({ error: "Iris intelligence is temporarily unavailable", certified: false, run_id: run.id ?? null });
     const metrics = full.layer_metrics;
-    const publication = await buildIrisPublicationContext(req.userId!, full.intelligence_atlas?.definitions ?? []);
+    const certified = run.status === "CERTIFIED" && run.certified === true;
+    if (!certified) {
+      return res.status(409).json({
+        error: "Iris intelligence is not certified for publication",
+        certified: false,
+        run_id: run.id ?? null,
+        execution_id: run.execution_id ?? null,
+        certification_gate: run.certification_gate ?? null,
+        publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false },
+      });
+    }
+    const publication = await buildIrisPublicationContext(req.userId!, full.intelligence_atlas?.definitions ?? [], { runId: run.id ?? null, executionId: run.execution_id ?? null, executionStatus: run.status ?? null });
     res.json({
       run_id: run.id ?? null,
       execution_id: run.execution_id ?? null,
-      certified: run.certified === true,
+      certified: true,
       certification_gate: run.certification_gate ?? null,
       narrative: full.narrative,
       generated_at: full.generated_at,
