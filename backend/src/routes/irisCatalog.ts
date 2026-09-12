@@ -7,6 +7,7 @@ import { persistIrisReportCatalog } from "../intelligence/irisReportCatalogPersi
 import { resolveIrisEvidenceToReports } from "../intelligence/irisEvidenceToReportTraversal.js";
 import { auditIrisAuthoritativeDomainCoverage } from "../intelligence/irisAuthoritativeDomainCoverage.js";
 import { auditIrisAuthoritativeDomainGates } from "../intelligence/irisAuthoritativeDomainGates.js";
+import { IRIS_CAPABILITY_HIERARCHY, validateIrisCapabilityHierarchyMapping } from "../intelligence/irisCapabilityHierarchy.js";
 
 export const irisCatalogRouter = Router();
 const REPORT_IDS = new Set(IRIS_REPORT_CATALOG.map((report) => report.reportId));
@@ -38,8 +39,10 @@ irisCatalogRouter.get("/iris/catalog", requireAuth, async (req: AuthedRequest, r
       activation: { mode: hasStoredPreference ? data?.activation_mode ?? "explicit" : "all_available", count: selected.length, report_ids: selected },
       catalog: IRIS_REPORT_CATALOG,
       dependency_graph: REPORT_DEPENDENCY_GRAPH,
+      capability_hierarchy: IRIS_CAPABILITY_HIERARCHY,
+      capability_hierarchy_validation: validateIrisCapabilityHierarchyMapping(),
       user_reports: userReports ?? [],
-      catalog_counts: { total: IRIS_REPORT_CATALOG.length, active: selected.length, families: new Set(IRIS_REPORT_CATALOG.map((report) => report.family)).size, user_reports: userReports?.length ?? 0 },
+      catalog_counts: { total: IRIS_REPORT_CATALOG.length, active: selected.length, families: new Set(IRIS_REPORT_CATALOG.map((report) => report.family)).size, user_reports: userReports?.length ?? 0, intelligence_capabilities: IRIS_CAPABILITY_HIERARCHY.length },
     });
   } catch (error) { console.error("iris/catalog error:", error); res.status(500).json({ error: "Unable to load Iris report catalog" }); }
 });
