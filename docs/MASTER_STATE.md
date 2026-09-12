@@ -1,126 +1,167 @@
 # Iris Master Project State
 
-> Authoritative continuity document. Iris is the product. The repository name is a technical identifier. The intelligence hierarchy is internal reasoning machinery; the user products are evidence-grounded reports and analytics produced from it.
+> Authoritative continuity document. This file describes the verified state of the current repository/runtime and never overrides live GitHub, Render, or Supabase evidence.
 
-## Current verified state
+## Current authority
 
-- Product: **Iris**
+- Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Current verified GitHub commit after this continuity block: the latest commit on `main` containing the report-product catalog, report activation persistence, publication gating, README, architecture, and roadmap reconciliation.
-- Current Render backend/frontend deployment must be verified from Render after the resulting commits finish deploying; prior verified current commit was `d6474f0ea16d7f9065ec2e628f080efaf38c50c3`.
+- Current main commit before this update: `9983f87a814efae20907728e0944683ce197c393`
 - Connected Supabase project: `uhcrdehjwaghqvydaqnn`
+- Current Render workspace: `tea-dai0jth42hec73araong`
 - Current scope: read-only intelligence; no money movement.
-- Data posture: evidence-gated; no fabricated/mock/seeded financial truth.
-- Supabase currently has zero `iris_run_evidence` rows, so real provider-evidence end-to-end certification is not claimed.
+- Continuity protocol: `docs/DOCUMENTATION_AUTHORITY.md`
 
-## Authoritative architecture
+## Architectural truth
 
-`Plaid Product Universe → Provider Capability/Commercial Control Plane → Real Provider Observations → Canonical Financial Life State → Relational Ontology → Iris Intelligence Hierarchy → Recursive Composition → Analytical Outputs → Iris Report Product Catalog → User Activation/Deactivation → Evidence-Qualified Reports → Evidence/Explanation → Scenario/Decision → Outcome/Learning → Higher-Order Intelligence`
+IRIS is **one complete hierarchy intelligence relational ontology financial life state ecosystem**.
 
-### Product boundary
+There are no two IRIS sides, no separate Financial Life side, no separate Intelligence side, and no separate data-free Education side.
 
-- **Iris intelligence hierarchy:** internal recursive reasoning/composition system. Capability families/operators are not user products and are not hierarchy levels.
-- **Iris Report Product Catalog:** user-facing products. Reports and analytics are the outputs of the intelligence hierarchy.
-- **User control:** users activate/deactivate report products. This controls publication, not the underlying intelligence hierarchy and not Plaid products.
-- **Plaid Dashboard:** provider/source observability only.
-- **Iris Dashboard/Workspaces:** surface active, evidence-qualified reports and their supporting intelligence.
+The hierarchy is:
 
-## Verified implementation foundations
+`IRIS → Financial-Life Reality/State → governed evidence → observed state → canonical Financial-Life State → relational ontology → intelligence → higher-order intelligence → recursive derived intelligence → features/reports/questions/explanations/education/workspaces → user`
 
-- Plaid product/capability catalogs and availability/consent/authorization/billing/entitlement dimensions exist.
-- Provider observation/source-field lineage foundations exist.
-- Canonical financial-life state and transaction-backed relational ontology foundations exist.
-- Evidence-bound temporal aggregation and run-bound state derivation exist.
-- Persisted capability contracts, governed planning, recursive dependency execution, validation, and certification foundations exist.
-- Runtime operators exist for the currently named governed capability universe.
-- Recursive higher-order synthesis and emergent composition foundations exist.
-- The intelligence output runtime explicitly prevents provider observations, financial values, and fake/mock/seeded data from being created by the publication layer.
-- The new report product catalog is derived from `analysisAtlas`, giving analytical definitions stable user-product identities rather than exposing capability families as products.
-- User report activation is persisted in `iris_user_report_preferences` and is independent from provider-product selection.
-- Deactivated reports are withheld from normal publication.
-- Evidence-insufficient reports remain withheld or explicitly qualified.
-- Report contextual naming uses only actual runtime context.
+Every surface is a traversal or representation of the same hierarchy. The surface name never determines whether user-specific information may appear. Evidence state, derivation state, provenance, lineage, uncertainty, authorization, execution state, and certification/publication state determine eligibility.
 
-## Report product model
+Forward and reverse traversal are both first-class requirements.
 
-The catalog is intentionally separate from the hierarchy:
+## Current verified provider boundary
 
-`Internal intelligence → analytical output → report product definition → user activation → evidence-qualified publication`
+The previously tested Plaid Sandbox → Supabase mapping path has been verified for the specific current Sandbox Item/data path that was actually reconciled.
 
-The catalog can become extremely large as recursive intelligence expands. New products must be derived from real analytical definitions or governed recursive compositions. The system must never manufacture report results, entities, amounts, dates, probabilities, confidence values, or outcomes merely to populate the catalog.
+That verification covered provider mapping, Item/user ownership, account mapping, transaction mapping, forward traversal, reverse traversal, and transaction reconciliation for the tested path.
 
-## Certification gap
+This does **not** automatically certify every current Item or every future synchronization run. The live database currently contains multiple Items, so broader user-level aggregation requires its own reconciliation and runtime proof.
 
-A capability/report is uncertified until all of the following are independently demonstrated:
+Statements remains the eighth architectural domain but is deferred from the current Sandbox evidence boundary until real banking. It is never simulated.
 
-1. Required real provider evidence exists and is persisted for the authorized user/Item.
-2. The execution is bounded to the exact run evidence manifest.
-3. Material input/output lineage is complete and queryable.
-4. The actual operator executes under its persisted contract.
-5. Execution artifacts and hashes validate against the run manifest.
-6. The atomic certification boundary accepts the result and a certified result is queryable.
-7. The corresponding report product is active, entitled, evidence-qualified, and correctly published.
-8. User activation/deactivation is enforced without bypassing evidence controls.
-9. Frontend/backend contracts agree with the deployed commit.
-10. The complete user journey succeeds against real provider evidence.
+## Current live Supabase state
 
-Current blocker: the connected Supabase project has **zero `iris_run_evidence` rows**. Therefore no real provider-evidence report can yet be end-to-end certified.
+The live database currently contains active Iris execution infrastructure and multiple failed recent full-intelligence runs. The current observed execution pattern includes `RECURSIVE_CAPABILITY_EXECUTION_FAILED` and `DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED` failures in recent runs.
 
-## Current remaining work
+Current certification state observed during the latest audit:
 
-### Intelligence
-- Complete richer-engine unification.
-- Bind every remaining operator read set to exact run evidence.
-- Complete field-level lineage.
-- Expand adaptive/statistical intelligence across additional entities/domains.
-- Deepen cross-domain risk/opportunity/consequence intelligence.
-- Complete higher-order pattern/emergent discovery and recursive composition certification.
+- `iris_runs`: 20
+- `iris_execution_records`: 20
+- `iris_certifications`: 0
+- `iris_execution_outputs`: 0
+- `iris_intelligence_nodes`: 0
+- `iris_intelligence_edges`: 0
+- `iris_user_intelligence_nodes`: 0
+- `iris_user_intelligence_edges`: 0
+- `iris_user_intelligence_compositions`: 0
+- `iris_certified_intelligence_read_model`: 0
+- `iris_report_products`: 70
+- `iris_report_product_dependencies`: 267
+- `iris_semantic_dependency_proofs`: 19
 
-### Reports/products
-- Generate report products from governed higher-order compositions.
-- Generate contextual report instances from actual user evidence/entities/periods/relationships.
-- Deduplicate equivalent compositions.
-- Add materiality/usefulness ranking based on evidence.
-- Complete catalog search/filter/sort and report workspaces.
-- Add report entitlement/commercial policy enforcement.
-- Certify report provenance/freshness/lineage.
+These counts are runtime observations, not completion claims.
 
-### Production certification
-- Real provider/database reconciliation.
-- Real provider-evidence execution.
-- Exact-run evidence certification.
-- Complete lineage verification.
-- Persisted execution-artifact verification.
-- Independent certification and queryable certified results.
-- RLS/ownership/security certification.
-- Durable sync/webhook lifecycle certification.
-- Plaid Sandbox lifecycle certification.
-- Intelligence sufficiency/regression certification.
-- Full observable user-journey certification.
+## Current Render state
+
+The active Render workspace contains separate current services for the frontend and backend:
+
+- `iris-backend-u60o.onrender.com` — Web Service, branch `main`.
+- `iris-frontend-cuy3.onrender.com` — Static Site, branch `main`.
+- An older Docker service named `iris-wg4p` also exists in the workspace and must not be treated as the authoritative frontend/backend deployment unless independently verified for use.
+
+The current backend live deployment observed during the audit is commit `9983f87a814efae20907728e0944683ce197c393`.
+
+## Current implementation state
+
+### Verified foundations
+
+- Plaid provider/source boundary exists.
+- Provider observation and source-field lineage foundations exist.
+- Canonical Financial-Life state foundations exist.
+- Relational ontology foundations exist.
+- Capability contracts and dependency planning exist.
+- Recursive capability executor exists.
+- Persisted intelligence graph infrastructure exists.
+- Semantic dependency proof infrastructure exists.
+- Certification infrastructure exists.
+- Report product catalog exists.
+- User report activation persistence exists.
+- Workspace registry exists.
+- Frontend/backend consumer intelligence contract exists.
+- Anti-fabrication controls exist.
+
+### Not certified
+
+- Recursive full-intelligence execution is not currently certified.
+- Certified intelligence output is not currently materializing in Supabase.
+- Full current multi-Item provider reconciliation is not certified.
+- Complete route-by-route UI traversal is not certified.
+- Complete control-by-control interaction is not certified.
+- Complete visual/cognition normalization is not certified.
+- Full authenticated end-to-end journey is not certified.
+
+## Current UI defect boundary
+
+The active `App.tsx` explicitly routes known specialized surfaces and registered workspace destinations, but many registered destinations still use the generic `IrisWorkspaceSurface`.
+
+The generic surface is evidence-backed, but it does not yet express the complete domain-specific function of every registered destination. This is the source of the observed loss of cognition/functionality as users travel deeper.
+
+The shell/navigation and route presentation also require complete visual normalization and control verification.
+
+## Current intelligence defect boundary
+
+The current capability planner expands `iris.full_intelligence` through the persisted active capability registry. The recursive executor then requires every declared dependency result and semantic dependency path.
+
+The live database shows repeated recent failures at this boundary. The next implementation block must identify the exact failing capability from the deployed runtime, reconcile its persisted contract with its executable operator, and fix the actual dependency/semantic-read defect rather than suppressing the failure.
+
+No fallback aggregate intelligence, hardcoded financial values, or fabricated AI output may be introduced to make execution appear successful.
+
+## Product/report rule
+
+Provider Products, IRIS Report Products, intelligence nodes, produced results, and certified results are independent concepts.
+
+`Provider Product count ≠ Report Product count ≠ produced result count ≠ certified result count`
+
+Reports, features, questions, explanations, education, evidence, and workspaces are all traversal surfaces of the same IRIS hierarchy.
 
 ## Absolute anti-fabrication rule
 
 Never create or present as financial truth:
 
 - fake AI-generated financial values;
-- mock, seeded, synthetic, copied, or manually invented financial observations;
-- hardcoded balances, transactions, income, debt, spending, or provider records;
+- fabricated users/accounts/transactions/balances/income/debt/spending;
+- fabricated provider observations;
 - invented report results;
-- invented confidence/probability values;
-- catalog metadata represented as observed evidence;
-- availability/consent/authorization/entitlement represented as observation;
-- missing evidence converted into zero;
-- suppressed or insufficient-evidence claims presented as complete.
+- invented outcomes;
+- invented probabilities/confidence values;
+- provider capability metadata represented as observation;
+- missing evidence represented as zero.
 
-Technical unit-test mocks may isolate infrastructure behavior but can never become production evidence or a user's financial state.
+Actual Plaid Sandbox observations are permitted as explicitly labeled Sandbox evidence. Technical mocks are test infrastructure only.
 
-## Continuity protocol
+## Mandatory continuity protocol
 
-1. Inspect current `main` before changes.
-2. Cross-check `MASTER_STATE.md`, `ARCHITECTURE.md`, `ROADMAP.md`, and `DECISIONS.md`.
-3. Cross-check GitHub, Render, and Supabase rather than trusting stale chat state.
-4. Build large dependency-complete blocks.
-5. Verify before claiming completion.
-6. Update continuity documents after material changes.
-7. Never claim evidence, lineage, deployment, or certification without direct verification.
+Before every material change:
+
+1. Read `docs/DOCUMENTATION_AUTHORITY.md`.
+2. Read the current README and ROADMAP.
+3. Read `MASTER_STATE.md`, `ARCHITECTURE.md`, `DECISIONS.md`, and `SESSION_HANDOFF.md`.
+4. Inspect exact current source files.
+5. Inspect the relevant live Render service/deployment.
+6. Inspect the relevant live Supabase schema/state.
+7. Identify the defect and dependency boundary.
+8. Make the smallest dependency-complete change that actually fixes the defect.
+
+After every material change:
+
+1. Re-read changed files.
+2. Verify the GitHub commit.
+3. Run applicable tests/builds.
+4. Verify deployment.
+5. Verify live database/runtime state.
+6. Reconcile forward and reverse lineage where applicable.
+7. Search for stale contradictory documentation.
+8. Update continuity documents.
+9. Never claim more than the verified boundary.
+
+## Definition of current done
+
+The system is not done until the authenticated user can traverse the complete IRIS hierarchy through real governed evidence, canonical state, relational ontology, intelligence, recursive intelligence, reports/features/questions/explanations/education/scenarios/decisions/actions/outcomes/learning, with every route and control functioning, every factual result traceable backward where lineage exists, and no fabricated content anywhere.
