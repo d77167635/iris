@@ -8,21 +8,9 @@ type Props = { go?: (page: string) => void };
 type RuntimeReport = { report_id?: string; runtime_lineage?: unknown };
 type ProductState = "runtime" | "active" | "defined";
 
-function productState(active: boolean, runtime: boolean): ProductState {
-  if (runtime) return "runtime";
-  if (active) return "active";
-  return "defined";
-}
-function stateLabel(state: ProductState) {
-  if (state === "runtime") return "Runtime output observed";
-  if (state === "active") return "Active definition";
-  return "Defined · inspect";
-}
-function stateDescription(state: ProductState) {
-  if (state === "runtime") return "A governed runtime output was returned for this product.";
-  if (state === "active") return "Activated by you; activation does not create evidence or intelligence.";
-  return "A catalog definition exists; no produced result is being claimed here.";
-}
+function productState(active: boolean, runtime: boolean): ProductState { if (runtime) return "runtime"; if (active) return "active"; return "defined"; }
+function stateLabel(state: ProductState) { if (state === "runtime") return "Runtime output observed"; if (state === "active") return "Active definition"; return "Defined · inspect"; }
+function stateDescription(state: ProductState) { if (state === "runtime") return "A governed runtime output was returned for this product."; if (state === "active") return "Activated by you; activation does not create evidence or intelligence."; return "A catalog definition exists; no produced result is being claimed here."; }
 
 export function IrisCatalog({ go }: Props) {
   const [catalog, setCatalog] = useState<IrisReportCatalogProduct[]>([]);
@@ -55,11 +43,7 @@ export function IrisCatalog({ go }: Props) {
 
   const families = useMemo(() => [...new Set(catalog.map((r) => r.family))].sort(), [catalog]);
   const outputTypes = useMemo(() => [...new Set(catalog.map((r) => r.outputType))].sort(), [catalog]);
-  const visible = useMemo(() => catalog.filter((r) =>
-    (family === "all" || r.family === family) &&
-    (outputType === "all" || r.outputType === outputType) &&
-    (!query.trim() || `${r.name} ${r.description} ${r.family} ${r.outputType} ${r.analysisId} ${r.requiredEvidenceInputs.join(" ")}`.toLowerCase().includes(query.toLowerCase()))
-  ), [catalog, family, outputType, query]);
+  const visible = useMemo(() => catalog.filter((r) => (family === "all" || r.family === family) && (outputType === "all" || r.outputType === outputType) && (!query.trim() || `${r.name} ${r.description} ${r.family} ${r.outputType} ${r.analysisId} ${r.requiredEvidenceInputs.join(" ")}`.toLowerCase().includes(query.toLowerCase()))), [catalog, family, outputType, query]);
   const selected = selectedId ? catalog.find((r) => r.reportId === selectedId) ?? null : null;
   const selectedDependency = selected ? dependencies.find((item) => item.report_id === selected.reportId) : undefined;
   const selectedUserReport = selectedUserReportId ? userReports.find((report) => report.id === selectedUserReportId) ?? null : null;
@@ -104,7 +88,7 @@ export function IrisCatalog({ go }: Props) {
     <>
       <IrisReportDetail report={selected} dependency={selectedDependency} active={active.includes(selected.reportId)} saving={saving} onToggle={() => void toggle(selected.reportId)} onBack={() => setSelectedId(null)} />
       <section className="iis-panel"><header><div><span>RETURN PATH</span><h2>Continue through the same hierarchy</h2></div></header><div className="iis-boundary"><p>From a report, IRIS can move toward reasoning, evidence, deeper intelligence, other reports, or any other supported hierarchy content without creating a second product side.</p></div></section>
-    </>\>
+    </>
   );
 
   return (
