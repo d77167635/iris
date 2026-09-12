@@ -42,21 +42,7 @@ const temporalOperator: CapabilityOperator = {
 };
 
 const REQUIRED_UPSTREAM: Record<string, string[]> = {
-  analysis: ["temporal"],
-  behavioral: ["analysis"],
-  pattern: ["analysis", "behavioral"],
-  relationship: ["pattern", "relational_ontology"],
-  anomaly: ["analysis", "temporal", "behavioral", "pattern"],
-  causal: ["relationship"],
-  predictive: ["causal", "temporal"],
-  scenario: ["predictive", "risk"],
-  decision: ["scenario", "risk"],
-  recommendation: ["decision"],
-  risk: ["analysis", "behavioral", "anomaly", "predictive"],
-  opportunity: ["analysis", "behavioral", "scenario", "recommendation"],
-  consequence: ["risk", "opportunity", "scenario", "decision"],
-  outcome: ["decision", "recommendation"],
-  learning: ["outcome"],
+  analysis: ["temporal"], behavioral: ["analysis"], pattern: ["analysis", "behavioral"], relationship: ["pattern", "relational_ontology"], anomaly: ["analysis", "temporal", "behavioral", "pattern"], causal: ["relationship"], predictive: ["causal", "temporal"], scenario: ["predictive", "risk"], decision: ["scenario", "risk"], recommendation: ["decision"], risk: ["analysis", "behavioral", "anomaly", "predictive"], opportunity: ["analysis", "behavioral", "scenario", "recommendation"], consequence: ["risk", "opportunity", "scenario", "decision"], outcome: ["decision", "recommendation"], learning: ["outcome"],
 };
 
 function evidenceGated(capabilityId: string, execute: NonNullable<CapabilityOperator["execute"]>): CapabilityOperator["execute"] {
@@ -67,44 +53,15 @@ function evidenceGated(capabilityId: string, execute: NonNullable<CapabilityOper
       return !result || result.evidence_state === "INSUFFICIENT_EVIDENCE";
     });
     if (missing.length) {
-      return {
-        capability_id: capabilityId,
-        operator_id: capabilityId,
-        operator_version: capabilityId === "learning" ? "1.1.0" : "1.0.0",
-        evidence_state: "INSUFFICIENT_EVIDENCE",
-        result: {
-          evidence: { state: "insufficient_evidence", source: "required_governed_upstream_capabilities" },
-          limitation: `Required real upstream capability evidence is not available: ${missing.join(", ")}. No substitute value is generated.`,
-          provenance: {
-            source: "required_governed_upstream_capabilities",
-            provider_observations_created: false,
-            financial_values_created: false,
-            money_movement_executed: false,
-            run_id: context?.runId ?? null,
-            evidence_manifest_hash: context?.evidenceManifestHash ?? null,
-            run_evidence_ids: [...(context?.runEvidenceIds ?? [])].sort(),
-            evidence_boundary: context?.evidenceBoundary ?? context?.asOf ?? null,
-            dependency_capabilities: required.map((dependency) => ({
-              capability_id: dependency,
-              evidence_state: context?.dependencyResults?.[dependency]?.evidence_state ?? "INSUFFICIENT_EVIDENCE",
-            })),
-          },
-        },
-      };
+      return { capability_id: capabilityId, operator_id: capabilityId, operator_version: capabilityId === "learning" ? "1.1.0" : "1.0.0", evidence_state: "INSUFFICIENT_EVIDENCE", result: { evidence: { state: "insufficient_evidence", source: "required_governed_upstream_capabilities" }, limitation: `Required real upstream capability evidence is not available: ${missing.join(", ")}. No substitute value is generated.`, provenance: { source: "required_governed_upstream_capabilities", provider_observations_created: false, financial_values_created: false, money_movement_executed: false, run_id: context?.runId ?? null, evidence_manifest_hash: context?.evidenceManifestHash ?? null, run_evidence_ids: [...(context?.runEvidenceIds ?? [])].sort(), evidence_boundary: context?.evidenceBoundary ?? context?.asOf ?? null, dependency_capabilities: required.map((dependency) => ({ capability_id: dependency, evidence_state: context?.dependencyResults?.[dependency]?.evidence_state ?? "INSUFFICIENT_EVIDENCE" })) } } };
     }
     return execute(userId, context);
   };
 }
 
-function op(capability_id: string, execute: CapabilityOperator["execute"], evidence_state: CapabilityOperatorResult["evidence_state"], execution_stage: string, version = "1.0.0"): CapabilityOperator {
-  return { capability_id, operator_id: capability_id, version, status: "implemented", execution_stage, evidence_state, execute: execute ? evidenceGated(capability_id, execute) : undefined };
-}
-
+function op(capability_id: string, execute: CapabilityOperator["execute"], evidence_state: CapabilityOperatorResult["evidence_state"], execution_stage: string, version = "1.0.0"): CapabilityOperator { return { capability_id, operator_id: capability_id, version, status: "implemented", execution_stage, evidence_state, execute: execute ? evidenceGated(capability_id, execute) : undefined }; }
 const financialLifeStateOperator: CapabilityOperator = op("financial_life_state", executeFinancialLifeState, "CALCULATED", "canonical_financial_life_state");
-const relationalOntologyOperator: CapabilityOperator = {
-  capability_id: "relational_ontology", operator_id: "relational_ontology", version: "1.0.0", status: "implemented", execution_stage: "relational_ontology_expansion", evidence_state: "CALCULATED",
-  execute: executeRelationalOntology,
-};
+const relationalOntologyOperator: CapabilityOperator = { capability_id: "relational_ontology", operator_id: "relational_ontology", version: "1.0.0", status: "implemented", execution_stage: "relational_ontology_expansion", evidence_state: "CALCULATED", execute: executeRelationalOntology };
 
 const emergentOperator: CapabilityOperator = {
   capability_id: "emergent", operator_id: "emergent", version: "1.1.0", status: "implemented", execution_stage: "recursive_higher_order_synthesis", evidence_state: "INFERRED",
@@ -112,47 +69,15 @@ const emergentOperator: CapabilityOperator = {
     const dependencyResults = context?.dependencyResults ?? {};
     const usableDependencies = Object.fromEntries(Object.entries(dependencyResults).filter(([, value]) => value.evidence_state !== "INSUFFICIENT_EVIDENCE"));
     if (!Object.keys(usableDependencies).length) {
-      return {
-        capability_id: "emergent", operator_id: "emergent", operator_version: "1.1.0", evidence_state: "INSUFFICIENT_EVIDENCE",
-        result: {
-          evidence: { state: "insufficient_evidence", source: "governed_run_capability_outputs" },
-          limitation: "No real upstream intelligence output is sufficiently evidenced for higher-order composition. No substitute intelligence is generated.",
-          provenance: { source: "governed_run_capability_outputs", provider_observations_created: false, financial_values_created: false, money_movement_executed: false, run_id: context?.runId ?? null, evidence_manifest_hash: context?.evidenceManifestHash ?? null, run_evidence_ids: [...(context?.runEvidenceIds ?? [])].sort(), evidence_boundary: context?.evidenceBoundary ?? context?.asOf ?? null },
-        },
-      };
+      return { capability_id: "emergent", operator_id: "emergent", operator_version: "1.1.0", evidence_state: "INSUFFICIENT_EVIDENCE", result: { evidence: { state: "insufficient_evidence", source: "governed_run_capability_outputs" }, limitation: "No real upstream intelligence output is sufficiently evidenced for higher-order composition. No substitute intelligence is generated.", provenance: { source: "governed_run_capability_outputs", provider_observations_created: false, financial_values_created: false, money_movement_executed: false, run_id: context?.runId ?? null, evidence_manifest_hash: context?.evidenceManifestHash ?? null, run_evidence_ids: [...(context?.runEvidenceIds ?? [])].sort(), evidence_boundary: context?.evidenceBoundary ?? context?.asOf ?? null } } };
     }
-    const synthesis = buildRecursiveIntelligenceSynthesis(dependencyResults, context);
-    return {
-      capability_id: "emergent", operator_id: "emergent", operator_version: "1.1.0", evidence_state: synthesis.evidence_profile.inferred > 0 || synthesis.evidence_profile.predicted > 0 || synthesis.evidence_profile.scenario > 0 ? "INFERRED" : "CALCULATED",
-      result: {
-        ...synthesis,
-        evidence: { state: synthesis.evidence_profile.complete ? "inferred" : "calculated", source: "governed_run_capability_outputs", dependency_count: Object.keys(usableDependencies).length },
-        provenance: { ...synthesis.provenance, source: "governed_run_capability_outputs" },
-      },
-    };
+    const synthesis = buildRecursiveIntelligenceSynthesis(usableDependencies, context);
+    return { capability_id: "emergent", operator_id: "emergent", operator_version: "1.1.0", evidence_state: synthesis.evidence_profile.inferred > 0 || synthesis.evidence_profile.predicted > 0 || synthesis.evidence_profile.scenario > 0 ? "INFERRED" : "CALCULATED", result: { ...synthesis, evidence: { state: synthesis.evidence_profile.complete ? "inferred" : "calculated", source: "governed_run_capability_outputs", dependency_count: Object.keys(usableDependencies).length }, provenance: { ...synthesis.provenance, source: "governed_run_capability_outputs" } } };
   },
 };
 
 export const EXECUTABLE_CAPABILITY_OPERATORS: CapabilityOperator[] = [
   temporalOperator, financialLifeStateOperator, relationalOntologyOperator,
-  op("analysis", executeAnalysis, "CALCULATED", "canonical_semantic_analysis"),
-  op("behavioral", executeBehavioral, "CALCULATED", "category_behavior"),
-  op("pattern", executePattern, "CALCULATED", "pattern_composition"),
-  op("relationship", executeRelationship, "INFERRED", "financial_relationship_analysis"),
-  op("anomaly", executeAnomaly, "CALCULATED", "canonical_anomaly_detection"),
-  op("causal", executeCausal, "INFERRED", "observational_candidate_analysis"),
-  op("predictive", executePredictive, "PREDICTED", "constrained_forward_projection"),
-  op("scenario", executeScenario, "SCENARIO", "counterfactual_spending_analysis"),
-  op("decision", executeDecision, "INFERRED", "decision_intelligence"),
-  op("recommendation", executeRecommendation, "INFERRED", "review_recommendations"),
-  op("risk", executeRisk, "INFERRED", "risk_signal_synthesis"),
-  op("opportunity", executeOpportunity, "INFERRED", "opportunity_investigation_synthesis"),
-  op("consequence", executeConsequence, "INFERRED", "conditional_consequence_propagation"),
-  op("outcome", executeOutcome, "CALCULATED", "durable_outcome_loop"),
-  op("learning", executeLearning, "INFERRED", "validated_outcome_learning", "1.1.0"),
-  emergentOperator,
+  op("analysis", executeAnalysis, "CALCULATED", "canonical_semantic_analysis"), op("behavioral", executeBehavioral, "CALCULATED", "category_behavior"), op("pattern", executePattern, "CALCULATED", "pattern_composition"), op("relationship", executeRelationship, "INFERRED", "financial_relationship_analysis"), op("anomaly", executeAnomaly, "CALCULATED", "canonical_anomaly_detection"), op("causal", executeCausal, "INFERRED", "observational_candidate_analysis"), op("predictive", executePredictive, "PREDICTED", "constrained_forward_projection"), op("scenario", executeScenario, "SCENARIO", "counterfactual_spending_analysis"), op("decision", executeDecision, "INFERRED", "decision_intelligence"), op("recommendation", executeRecommendation, "INFERRED", "review_recommendations"), op("risk", executeRisk, "INFERRED", "risk_signal_synthesis"), op("opportunity", executeOpportunity, "INFERRED", "opportunity_investigation_synthesis"), op("consequence", executeConsequence, "INFERRED", "conditional_consequence_propagation"), op("outcome", executeOutcome, "CALCULATED", "durable_outcome_loop"), op("learning", executeLearning, "INFERRED", "validated_outcome_learning", "1.1.0"), emergentOperator,
 ];
-
-export function getCapabilityOperator(capabilityId: string): CapabilityOperator | null {
-  return EXECUTABLE_CAPABILITY_OPERATORS.find((operator) => operator.capability_id === capabilityId) ?? null;
-}
+export function getCapabilityOperator(capabilityId: string): CapabilityOperator | null { return EXECUTABLE_CAPABILITY_OPERATORS.find((operator) => operator.capability_id === capabilityId) ?? null; }
