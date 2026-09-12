@@ -43,6 +43,19 @@ export interface ConsumerReportProduct {
   };
 }
 
+export interface IrisConsumerCertificationGate {
+  eligible?: boolean;
+  status?: string;
+  [key: string]: unknown;
+}
+
+export interface IrisConsumerPublicationBoundary {
+  status?: string;
+  reason?: string;
+  derived_intelligence_publication?: boolean;
+  [key: string]: unknown;
+}
+
 /**
  * The governed /iris/intelligence response deliberately publishes the
  * established intelligence metrics alongside the evidence-gated report
@@ -54,7 +67,7 @@ export interface IrisConsumerIntelligenceResponse {
   execution_id: string | null;
   run_status: string;
   certified: boolean;
-  certification_gate: unknown;
+  certification_gate: IrisConsumerCertificationGate | null;
   generated_at: string | null;
   narrative: string;
   net_worth: {
@@ -160,7 +173,7 @@ export interface IrisConsumerIntelligenceResponse {
     suppressed_outputs: ConsumerReportProduct[];
   };
   report_certification_runtime?: unknown;
-  publication_boundary: unknown;
+  publication_boundary: IrisConsumerPublicationBoundary | null;
   [key: string]: unknown;
 }
 
