@@ -19,7 +19,7 @@ irisIntelligenceRouter.get("/iris/intelligence", requireAuth, async (req: Authed
   try {
     const { data: run, error: runError } = await supabaseAdmin
       .from("iris_runs")
-      .select("id,status,execution_id,certification_hash,created_at,completed_at,failure_code,failure_message")
+      .select("id,status,certification_hash,created_at,completed_at,failure_code,failure_message")
       .eq("user_id", req.userId!)
       .order("created_at", { ascending: false })
       .limit(1)
