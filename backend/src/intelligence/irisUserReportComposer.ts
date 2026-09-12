@@ -34,7 +34,6 @@ const EMPOWERMENT_WEIGHTS: Array<[RegExp, number]> = [
 ];
 
 const KIND_WEIGHTS: Record<ReportContentBlock["kind"], number> = {
-  decision: 0,
   intelligence: 8,
   derived_state: 6,
   scenario: 5,
@@ -42,7 +41,7 @@ const KIND_WEIGHTS: Record<ReportContentBlock["kind"], number> = {
   report: 3,
   explanation: 2,
   observed_evidence: 0,
-} as Record<string, number>;
+};
 
 function hash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -66,7 +65,7 @@ function empowermentScore(block: ReportContentBlock): number {
   const explicitImportance = numericMetadata(block.value, ["importance_score", "importanceScore", "priority_score"]);
   const semanticWeight = EMPOWERMENT_WEIGHTS.find(([pattern]) => pattern.test(block.name))?.[1] ?? 50;
   const evidenceWeight = ["OBSERVED", "CALCULATED"].includes(block.evidence_state) ? 10 : 0;
-  const kindWeight = KIND_WEIGHTS[block.kind] ?? 0;
+  const kindWeight = KIND_WEIGHTS[block.kind];
   return (explicitEmpowerment * 1000) + (explicitImportance * 100) + semanticWeight + evidenceWeight + kindWeight;
 }
 
@@ -83,6 +82,16 @@ function buildDescription(primary: ReportContentBlock, blocks: ReportContentBloc
     : `${primary.name} report generated from the certified IRIS hierarchy.`;
 }
 
+function classifyRuntimeNode(node: RuntimeNode): ReportContentBlock["kind"] {
+  const semantic = `${node.intelligence_key ?? ""} ${node.intelligence_name ?? ""} ${node.capability_id ?? ""}`;
+  if (/scenario|simulation|hypothetical/i.test(semantic)) return "scenario";
+  if (/outcome|learning|observed.?outcome/i.test(semantic)) return "outcome";
+  if (/explanation|education|reasoning/i.test(semantic)) return "explanation";
+  if (/state|position|financial.?life/i.test(semantic)) return "derived_state";
+  if (/report/i.test(semantic)) return "report";
+  return "intelligence";
+}
+
 export function composeIrisUserReport(input: {
   userId: string;
   runId: string;
@@ -96,7 +105,7 @@ export function composeIrisUserReport(input: {
   const primary = choosePrimary(blocks);
   const normalizedBlocks = [...blocks].sort((a, b) => a.id.localeCompare(b.id));
   const composition = {
-    version: "IRIS_USER_REPORT_COMPOSITION_V2",
+    version: "IRIS_USER_REPORT_COMPOSITION_V3",
     rule: "IRIS may combine any governed hierarchy content available to this execution, whether it contains intelligence, does not contain intelligence, or mixes both; it selects the most important or empowering actual content as the report title anchor.",
     primary_content: { kind: primary.kind, id: primary.id, name: primary.name, empowerment_score: empowermentScore(primary) },
     content_count: normalizedBlocks.length,
@@ -134,7 +143,7 @@ export async function materializeIrisUserReportInventory(input: { userId: string
   const runtimeNodes = (nodes ?? []) as RuntimeNode[];
   const blocks: ReportContentBlock[] = runtimeNodes
     .filter((node) => node.evidence_state !== "INSUFFICIENT_EVIDENCE")
-    .map((node) => ({ kind: "intelligence", id: node.id, name: normalizeName(node.intelligence_name ?? node.intelligence_key ?? node.capability_id ?? "IRIS intelligence"), value: node.value, evidence_state: node.evidence_state }));
+    .map((node) => ({ kind: classifyRuntimeNode(node), id: node.id, name: normalizeName(node.intelligence_name ?? node.intelligence_key ?? node.capability_id ?? "IRIS content"), value: node.value, evidence_state: node.evidence_state }));
 
   const { data: evidenceRows, error: evidenceError } = await supabaseAdmin
     .from("iris_run_evidence")
