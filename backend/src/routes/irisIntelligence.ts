@@ -11,6 +11,9 @@ export const irisIntelligenceRouter = Router();
  * Reads the latest persisted governed run; it never silently starts a new
  * intelligence execution. Execution belongs to POST /iris/runs so a user
  * action or explicit caller controls when a new evidence boundary is created.
+ *
+ * Publication is server-gated: a persisted execution output is not exposed as
+ * user-facing intelligence unless the authoritative Iris run is CERTIFIED.
  */
 irisIntelligenceRouter.get("/iris/intelligence", requireAuth, async (req: AuthedRequest, res) => {
   try {
@@ -44,12 +47,27 @@ irisIntelligenceRouter.get("/iris/intelligence", requireAuth, async (req: Authed
     if (outputError) throw outputError;
     if (!output?.value) return res.status(503).json({ error: "The latest Iris run has no persisted intelligence output", certified: false, run_id: run.id, execution_id: execution.id, status: run.status, failure_code: run.failure_code ?? null, failure_message: run.failure_message ?? null });
 
+    const certified = run.status === "CERTIFIED" && typeof run.certification_hash === "string" && run.certification_hash.length > 0;
+    if (!certified) {
+      return res.status(409).json({
+        error: "Iris intelligence is not certified for publication",
+        certified: false,
+        run_id: run.id,
+        execution_id: execution.id,
+        status: run.status,
+        certification_hash: null,
+        failure_code: run.failure_code ?? null,
+        failure_message: run.failure_message ?? null,
+        publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false },
+      });
+    }
+
     const full = output.value as any;
     const metrics = full.layer_metrics ?? {};
     const atlasDefinitions = full.intelligence_atlas?.definitions ?? [];
     const publication = await buildIrisPublicationContext(req.userId!, atlasDefinitions, { runId: run.id, executionId: execution.id, executionStatus: run.status });
     const featureFlags = await getFeatureFlags(req.userId!);
-    return res.json({ ...full, run_id: run.id, execution_id: execution.id, run_status: run.status, certified: run.status === "CERTIFIED", certification_hash: run.certification_hash ?? null, failure_code: run.failure_code ?? null, failure_message: run.failure_message ?? null, output_hash: output.hash, output_evidence_state: output.evidence_state, net_worth: metrics.net_worth, debt_health: { ...metrics.debt_health, interest_cost_attribution: full.layer_debt_cost }, cash_flow_safety: metrics.cash_flow_safety, roundup_projection: metrics.roundup_projection, cash_flow: metrics.cash_flow, spending_by_domain: metrics.spending_by_domain, balance_history: metrics.balance_history, forward_projection: metrics.forward_projection, anomalies: metrics.anomalies, spending_hierarchy: metrics.spending_hierarchy, category_drift: full.layer_behavioral?.categoryDrift, reasoning: full.layer_reasoning, maximum_intelligence: full.layer_max_intelligence, feature_flags: featureFlags, selected_report_ids: publication.selected_report_ids, report_catalog: publication.report_catalog, feature_runtime: publication.feature_runtime, intelligence_output_runtime: publication.intelligence_output_runtime, report_certification_runtime: publication.report_certification_runtime, publication_boundary: publication.publication_boundary });
+    return res.json({ ...full, run_id: run.id, execution_id: execution.id, run_status: run.status, certified: true, certification_hash: run.certification_hash, failure_code: run.failure_code ?? null, failure_message: run.failure_message ?? null, output_hash: output.hash, output_evidence_state: output.evidence_state, net_worth: metrics.net_worth, debt_health: { ...metrics.debt_health, interest_cost_attribution: full.layer_debt_cost }, cash_flow_safety: metrics.cash_flow_safety, roundup_projection: metrics.roundup_projection, cash_flow: metrics.cash_flow, spending_by_domain: metrics.spending_by_domain, balance_history: metrics.balance_history, forward_projection: metrics.forward_projection, anomalies: metrics.anomalies, spending_hierarchy: metrics.spending_hierarchy, category_drift: full.layer_behavioral?.categoryDrift, reasoning: full.layer_reasoning, maximum_intelligence: full.layer_max_intelligence, feature_flags: featureFlags, selected_report_ids: publication.selected_report_ids, report_catalog: publication.report_catalog, feature_runtime: publication.feature_runtime, intelligence_output_runtime: publication.intelligence_output_runtime, report_certification_runtime: publication.report_certification_runtime, publication_boundary: publication.publication_boundary });
   } catch (err) {
     console.error("iris/intelligence error:", err);
     return res.status(500).json({ error: "Iris intelligence could not be read" });
