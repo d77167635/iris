@@ -12,6 +12,11 @@ export type ExecutionBudget = { maxNodes: number; maxEdges: number; maxCompositi
 type CapabilityDispatcher = (request: { userId: string; capabilityId: string; context?: CapabilityExecutionContext }) => Promise<CapabilityOperatorResult>;
 export type RecursiveCapabilityExecutionResult = { executor_version: typeof RECURSIVE_CAPABILITY_EXECUTOR_VERSION; status: "COMPLETED" | "PARTIAL" | "BLOCKED" | "EXECUTION_BUDGET_EXCEEDED" | "FAILED"; ordered_capabilities: string[]; executed_capabilities: string[]; results: Record<string, CapabilityOperatorResult>; graph_node_ids: Record<string, string>; failed_capability: string | null; error: string | null; resource_usage: { nodes: number; edges: number; compositions: number }; dependency_consumption: Record<string, string[]> };
 function finiteNonNegative(value: number): boolean { return Number.isFinite(value) && value >= 0; }
+function errorText(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  try { return JSON.stringify(error); } catch { return String(error); }
+}
 function hasDependencyCycle(contracts: CapabilityPlan["contracts"]): boolean {
   const dependencies = new Map(contracts.map((contract) => [contract.capability_id, Array.isArray(contract.dependencies) ? contract.dependencies.filter((id): id is string => typeof id === "string" && id.length > 0) : []]));
   const visiting = new Set<string>();
@@ -97,7 +102,7 @@ export async function executeRecursiveCapabilityPlan(userId: string, plan: Capab
       }
       if (context.persistLineage && context.runId && context.executionId) await context.persistLineage({ capabilityId, result: operatorResult, dependencyResults });
     } catch (error) {
-      return finish(plan, "FAILED", executed, results, capabilityId, error instanceof Error ? error.message : String(error), executed.length, edges, compositions, dependencyConsumption, graphNodeIds);
+      return finish(plan, "FAILED", executed, results, capabilityId, errorText(error), executed.length, edges, compositions, dependencyConsumption, graphNodeIds);
     }
   }
   if (executed.length !== ordered.length) return finish(plan, "PARTIAL", executed, results, null, "CAPABILITY_GRAPH_PARTIAL: not every planned capability executed.", executed.length, edges, compositions, dependencyConsumption, graphNodeIds);
