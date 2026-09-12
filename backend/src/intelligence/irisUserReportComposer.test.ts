@@ -19,7 +19,7 @@ test("IRIS report composition accepts mixed hierarchy content", () => {
   assert.equal(report.title, "Opportunity to improve cash flow");
   assert.deepEqual(report.content_node_ids, ["explanation-1", "intelligence-1"]);
   assert.deepEqual(report.source_evidence_ids, []);
-  assert.equal(report.composition.version, "IRIS_USER_REPORT_COMPOSITION_V2");
+  assert.equal(report.composition.version, "IRIS_USER_REPORT_COMPOSITION_V3");
   assert.equal(report.content.blocks.length, 3);
 });
 
