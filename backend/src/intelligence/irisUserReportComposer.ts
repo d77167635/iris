@@ -22,16 +22,27 @@ type RuntimeNode = {
 };
 
 const EMPOWERMENT_WEIGHTS: Array<[RegExp, number]> = [
-  [/decision|next.best|action|choice/i, 100],
+  [/decision|next[ ._-]?best|action|choice/i, 100],
   [/opportunity|optimization|goal/i, 95],
   [/consequence|resilience|safety/i, 92],
   [/risk|pressure|vulnerability/i, 90],
   [/forecast|projection|trajectory|outlook/i, 86],
   [/causal|driver|reasoning/i, 84],
   [/behavior|change|anomaly/i, 80],
-  [/liquidity|cash.flow|debt/i, 76],
+  [/liquidity|cash[ ._-]?flow|debt/i, 76],
   [/state|position/i, 70],
 ];
+
+const KIND_WEIGHTS: Record<ReportContentBlock["kind"], number> = {
+  decision: 0,
+  intelligence: 8,
+  derived_state: 6,
+  scenario: 5,
+  outcome: 4,
+  report: 3,
+  explanation: 2,
+  observed_evidence: 0,
+} as Record<string, number>;
 
 function hash(value: unknown): string {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -41,10 +52,22 @@ function normalizeName(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function numericMetadata(value: Record<string, unknown> | null, keys: string[]): number {
+  if (!value) return 0;
+  for (const key of keys) {
+    const candidate = value[key];
+    if (typeof candidate === "number" && Number.isFinite(candidate)) return candidate;
+  }
+  return 0;
+}
+
 function empowermentScore(block: ReportContentBlock): number {
-  const match = EMPOWERMENT_WEIGHTS.find(([pattern]) => pattern.test(block.name));
-  const evidenceWeight = block.evidence_state === "OBSERVED" || block.evidence_state === "CALCULATED" ? 10 : 0;
-  return (match?.[1] ?? 50) + evidenceWeight;
+  const explicitEmpowerment = numericMetadata(block.value, ["empowerment_score", "user_empowerment_score", "empowermentScore"]);
+  const explicitImportance = numericMetadata(block.value, ["importance_score", "importanceScore", "priority_score"]);
+  const semanticWeight = EMPOWERMENT_WEIGHTS.find(([pattern]) => pattern.test(block.name))?.[1] ?? 50;
+  const evidenceWeight = ["OBSERVED", "CALCULATED"].includes(block.evidence_state) ? 10 : 0;
+  const kindWeight = KIND_WEIGHTS[block.kind] ?? 0;
+  return (explicitEmpowerment * 1000) + (explicitImportance * 100) + semanticWeight + evidenceWeight + kindWeight;
 }
 
 function choosePrimary(blocks: ReportContentBlock[]): ReportContentBlock {
@@ -69,14 +92,16 @@ export function composeIrisUserReport(input: {
   sourceEvidenceIds?: string[];
   sourceReportIds?: string[];
 }) {
-  const blocks = input.blocks.filter((block) => block.id.trim() && block.name.trim());
+  const blocks = input.blocks.filter((block) => block.id.trim() && block.name.trim() && block.evidence_state.trim());
   const primary = choosePrimary(blocks);
+  const normalizedBlocks = [...blocks].sort((a, b) => a.id.localeCompare(b.id));
   const composition = {
-    version: "IRIS_USER_REPORT_COMPOSITION_V1",
-    rule: "Combine any governed content available to this execution; select the most important or empowering certified content as the report title anchor.",
-    primary_content: { kind: primary.kind, id: primary.id, name: primary.name },
-    content_count: blocks.length,
-    content_ids: blocks.map((block) => block.id).sort(),
+    version: "IRIS_USER_REPORT_COMPOSITION_V2",
+    rule: "IRIS may combine any governed hierarchy content available to this execution, whether it contains intelligence, does not contain intelligence, or mixes both; it selects the most important or empowering actual content as the report title anchor.",
+    primary_content: { kind: primary.kind, id: primary.id, name: primary.name, empowerment_score: empowermentScore(primary) },
+    content_count: normalizedBlocks.length,
+    content_ids: normalizedBlocks.map((block) => block.id),
+    content_kinds: normalizedBlocks.map((block) => ({ id: block.id, kind: block.kind, evidence_state: block.evidence_state })),
     source_evidence_ids: [...new Set(input.sourceEvidenceIds ?? [])].sort(),
     source_report_ids: [...new Set(input.sourceReportIds ?? [])].sort(),
   };
@@ -84,13 +109,13 @@ export function composeIrisUserReport(input: {
   return {
     report_id: `user-report.${compositionHash.slice(0, 24)}`,
     title: normalizeName(primary.name),
-    description: buildDescription(primary, blocks),
+    description: buildDescription(primary, normalizedBlocks),
     primary_content_kind: primary.kind,
     primary_content_id: primary.id,
-    content_node_ids: blocks.filter((block) => block.kind === "intelligence" || block.kind === "derived_state").map((block) => block.id),
-    source_evidence_ids: [...new Set(input.sourceEvidenceIds ?? [])],
-    source_report_ids: [...new Set(input.sourceReportIds ?? [])],
-    content: { blocks },
+    content_node_ids: normalizedBlocks.filter((block) => block.kind !== "observed_evidence").map((block) => block.id),
+    source_evidence_ids: [...new Set(input.sourceEvidenceIds ?? [])].sort(),
+    source_report_ids: [...new Set(input.sourceReportIds ?? [])].sort(),
+    content: { blocks: normalizedBlocks },
     composition,
     composition_hash: compositionHash,
     certification_hash: input.certificationHash,
