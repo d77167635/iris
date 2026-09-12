@@ -9,8 +9,28 @@ export type IrisReportCatalogProduct = {
   requiredEvidenceInputs: string[];
 };
 
-export type IrisReportCatalogActivationMode = "all_available" | "explicit";
+export type IrisReportCatalogUserReport = {
+  id: string;
+  report_id: string;
+  run_id: string;
+  execution_id: string;
+  title: string;
+  description: string;
+  primary_content_kind: string;
+  primary_content_id: string;
+  content_node_ids: string[];
+  source_evidence_ids: string[];
+  source_report_ids: string[];
+  content: Record<string, unknown>;
+  composition: Record<string, unknown>;
+  composition_hash: string;
+  certification_hash: string;
+  status: "PUBLISHED" | "RETIRED";
+  created_at: string;
+  updated_at: string;
+};
 
+export type IrisReportCatalogActivationMode = "all_available" | "explicit";
 export type IrisReportDependencyResolutionState = "definition_only";
 
 export type IrisReportDependency = {
@@ -27,6 +47,7 @@ export type IrisReportCatalogResponse = {
   product_boundary: string;
   provider_boundary: string;
   catalog: IrisReportCatalogProduct[];
+  user_reports: IrisReportCatalogUserReport[];
   dependency_graph: IrisReportDependency[];
   activation: {
     mode: IrisReportCatalogActivationMode;
@@ -37,5 +58,6 @@ export type IrisReportCatalogResponse = {
     total: number;
     active: number;
     families: number;
+    user_reports: number;
   };
 };
