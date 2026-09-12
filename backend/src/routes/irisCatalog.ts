@@ -22,9 +22,25 @@ irisCatalogRouter.get("/iris/catalog", requireAuth, async (req: AuthedRequest, r
     await persistIrisReportCatalog();
     const { data, error } = await supabaseAdmin.from("iris_user_report_preferences").select("catalog_version, selected_report_ids, activation_mode, updated_at").eq("user_id", req.userId!).maybeSingle();
     if (error) throw error;
+    const { data: userReports, error: userReportsError } = await supabaseAdmin
+      .from("iris_user_reports")
+      .select("id,report_id,run_id,execution_id,title,description,primary_content_kind,primary_content_id,content_node_ids,source_evidence_ids,source_report_ids,content,composition,composition_hash,certification_hash,status,created_at,updated_at")
+      .eq("user_id", req.userId!)
+      .eq("status", "PUBLISHED")
+      .order("created_at", { ascending: false });
+    if (userReportsError) throw userReportsError;
     const hasStoredPreference = !!data;
     const selected = hasStoredPreference ? cleanReportIds(data?.selected_report_ids) : [...IRIS_DEFAULT_ACTIVE_REPORT_IDS];
-    res.json({ catalog_version: IRIS_REPORT_CATALOG_VERSION, product_boundary: "Iris report products are user-facing outputs of the intelligence hierarchy. Intelligence capabilities/operators are internal composition machinery, not user products.", provider_boundary: "Plaid supplies provider observations. Catalog metadata, consent, availability, entitlement, and report activation are never provider evidence.", activation: { mode: hasStoredPreference ? data?.activation_mode ?? "explicit" : "all_available", count: selected.length, report_ids: selected }, catalog: IRIS_REPORT_CATALOG, dependency_graph: REPORT_DEPENDENCY_GRAPH, catalog_counts: { total: IRIS_REPORT_CATALOG.length, active: selected.length, families: new Set(IRIS_REPORT_CATALOG.map((report) => report.family)).size } });
+    res.json({
+      catalog_version: IRIS_REPORT_CATALOG_VERSION,
+      product_boundary: "Iris report products are user-facing outputs of the intelligence hierarchy. Intelligence capabilities/operators are internal composition machinery, not user products. User-specific reports are execution-scoped compositions and are stored separately from global product definitions.",
+      provider_boundary: "Plaid supplies provider observations. Catalog metadata, consent, availability, entitlement, and report activation are never provider evidence.",
+      activation: { mode: hasStoredPreference ? data?.activation_mode ?? "explicit" : "all_available", count: selected.length, report_ids: selected },
+      catalog: IRIS_REPORT_CATALOG,
+      dependency_graph: REPORT_DEPENDENCY_GRAPH,
+      user_reports: userReports ?? [],
+      catalog_counts: { total: IRIS_REPORT_CATALOG.length, active: selected.length, families: new Set(IRIS_REPORT_CATALOG.map((report) => report.family)).size, user_reports: userReports?.length ?? 0 },
+    });
   } catch (error) { console.error("iris/catalog error:", error); res.status(500).json({ error: "Unable to load Iris report catalog" }); }
 });
 
