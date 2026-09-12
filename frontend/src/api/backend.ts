@@ -44,7 +44,7 @@ export const api = {
   getOverview: () => authedFetch("/dashboard/overview"), getUnifiedDashboard: () => authedFetch("/dashboard/unified"),
   getIntelligence: getCanonicalIntelligence, getIrisSummary,
   getIrisCatalog: (): Promise<IrisReportCatalogResponse> => authedFetch<IrisReportCatalogResponse>("/iris/catalog"),
-  saveIrisCatalogSelection: (reportIds: string[]) => authedFetch<{ activation: { report_ids: string[] } }>("/iris/catalog/selection", { method: "PUT", body: JSON.stringify({ report_ids: reportIds })),
+  saveIrisCatalogSelection: (reportIds: string[]) => authedFetch<{ activation: { report_ids: string[] } }>("/iris/catalog/selection", { method: "PUT", body: JSON.stringify({ report_ids: reportIds }) }),
   resetIrisCatalog: () => authedFetch<{ activation: { report_ids: string[] } }>("/iris/catalog/reset", { method: "POST" }),
   getIrisEvidenceReverseLineage: (evidenceId: string, runId: string, executionId: string): Promise<IrisReverseLineageResponse> => authedFetch<IrisReverseLineageResponse>(`/iris/lineage/evidence/${encodeURIComponent(evidenceId)}?run_id=${encodeURIComponent(runId)}&execution_id=${encodeURIComponent(executionId)}`),
   getIrisOutcomeObservations: () => authedFetch<{ outcomes: Array<{ id: string; source_type: string; source_id: string; outcome_type: string; outcome_state: string; value: Record<string, unknown> | null; observed_at: string | null; effective_at: string | null; evidence_hash: string | null; lineage: Record<string, unknown> | null }>; evidence_state: string }>("/iris/outcomes"),
