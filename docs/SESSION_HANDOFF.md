@@ -2,64 +2,73 @@
 
 This file is the compact bridge between sessions. It must reflect verified repository/runtime state, not older chat assumptions.
 
-## Current verified state
+## Current authority
 
+- Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Product: **Iris**
-- Iris intelligence hierarchy: recursive and unbounded semantically; it is internal reasoning/composition machinery.
-- User products: evidence-grounded **reports and analytics** produced by the hierarchy.
-- Connected Supabase project: `uhcrdehjwaghqvydaqnn`
-- Connected Supabase currently has zero `iris_run_evidence` rows.
-- Current scope remains read-only intelligence; no money movement.
+- Continuity protocol: `docs/DOCUMENTATION_AUTHORITY.md`
+- Connected Supabase: `uhcrdehjwaghqvydaqnn`
+- Current Render workspace: `tea-dai0jth42hec73araong`
+- Scope: read-only intelligence; no money movement.
 
-## Current report-product implementation
+## Single-system architecture
 
-- `backend/src/intelligence/irisReportCatalog.ts` defines the user-facing report product catalog from the authoritative analytical atlas.
-- `backend/src/routes/irisCatalog.ts` exposes the report catalog and user activation/deactivation/reset controls.
-- `backend/src/intelligence/irisIntelligenceOutputRuntime.ts` treats report activation as a publication control and keeps internal intelligence capability execution separate.
-- `backend/src/intelligence/irisPublicationContext.ts` loads per-user report activation from Supabase and applies it at the report publication boundary.
-- `supabase/migrations/080_iris_report_product_preferences.sql` persists per-user report activation state with RLS.
-- `frontend/src/components/IrisCatalog.tsx` now presents reports/analytics as the user products rather than exposing the internal intelligence capability hierarchy as the product catalog.
-- Report contextual naming uses only runtime information that actually exists.
+IRIS is one complete hierarchy intelligence relational ontology financial life state ecosystem.
 
-## Critical product rule
+There are no two IRIS sides. Financial Life, evidence, ontology, intelligence, reports, questions, explanations, education, scenarios, decisions, outcomes, learning, and workspaces are all connected representations and traversal surfaces of the same hierarchy.
 
-**Do not call the intelligence hierarchy itself the product catalog.**
+Any supported IRIS surface may expose supported user-specific evidence and/or derived intelligence when the governing evidence, lineage, uncertainty, authorization, runtime, and certification/publication state permits it.
 
-The hierarchy contains domains, evidence, canonical facts, operators, relationships, dependencies, recursive compositions, and higher-order intelligence. Those are internal machinery.
+## Current verified provider boundary
 
-The product catalog contains the **reports and analytics returned by that machinery**. As valid recursive intelligence expands, the number of report products can become extremely large. New products must come from real governed analytical definitions or evidence-supported recursive compositions.
+The specific Plaid Sandbox → Supabase Item/data path previously reconciled is verified. The claim is intentionally scoped to that tested path and does not automatically certify the broader current multi-Item population.
 
-Users control those report products individually by activating or deactivating them. This does not activate/deactivate Plaid products and does not constrain Iris's semantic intelligence depth.
+Statements remains architecturally authoritative but is deferred from the current Sandbox evidence boundary until real banking.
 
-## Anti-fabrication rule
+## Current runtime blocker
 
-No fake AI financial data is permitted.
+The live Supabase project currently contains recent full-intelligence runs that fail with `RECURSIVE_CAPABILITY_EXECUTION_FAILED`, including failures reporting `DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED`.
 
-Never create or present as user financial truth:
-- fake AI-generated values;
-- mock/seeded/synthetic/copy/pasted financial observations;
-- hardcoded balances, transactions, income, debt, spending, or provider records;
-- invented report results;
-- invented confidence/probability values;
-- catalog metadata as evidence;
-- provider availability/consent/authorization/entitlement as observations;
-- missing evidence as zero.
+Current observed certification/output state:
 
-Technical mocks are permitted only where they isolate infrastructure behavior in tests. They must never be promoted to production evidence or shown as a user's financial state.
+- `iris_runs`: 20
+- `iris_execution_records`: 20
+- `iris_certifications`: 0
+- `iris_execution_outputs`: 0
+- intelligence graph nodes: 0
+- user intelligence graph nodes: 0
+- certified intelligence read model: 0
+- report products: 70
+- report dependencies: 267
+- semantic dependency proofs: 19
 
-## Certification gap
+Do not suppress this failure with fallback or invented intelligence. The exact deployed runtime defect must be identified and corrected.
 
-The implementation is not end-to-end certified because the connected Supabase project currently contains no run evidence. A report/capability requires real provider evidence, exact evidence-bound execution, complete lineage, artifact validation, atomic certification, active publication enforcement, user interaction verification, deployment verification, and full journey verification before it can be certified.
+## Current UI blocker
 
-## Next dependency-complete block
+The workspace registry is authoritative, but `App.tsx` still routes many registered destinations through the generic `IrisWorkspaceSurface`. That surface is evidence-backed but does not yet provide the real domain-specific behavior of every route.
 
-1. Verify the report-product implementation against the current deployed commit.
-2. Run backend/frontend tests and build verification.
-3. Inspect for any remaining user-facing capability-as-product language or hardcoded/fabricated financial presentation paths.
-4. Reconcile the full report catalog with the analytical atlas and recursive composition engine.
-5. Ensure active report selection is the sole user publication control for report products.
-6. Continue toward real provider-evidence execution and certification without importing synthetic financial data.
+The visual shell also needs complete cognition/style normalization and every control requires end-to-end verification.
 
-Always cross-check GitHub, Render, and Supabase directly before claiming current state.
+## Required work sequence
+
+1. Correct any remaining contradictory documentation before implementation changes.
+2. Audit the exact deployed recursive execution failure against current GitHub code and live Supabase contracts/data.
+3. Fix the actual dependency/semantic execution defect.
+4. Audit after the fix and prove a real run can produce persisted output before claiming intelligence certification.
+5. Reconcile current multi-Item evidence scope and prevent cross-Item/user aggregation errors.
+6. Replace generic workspace behavior with route-specific governed surfaces.
+7. Verify every route, control, loading/empty/error/insufficient state, and forward/reverse traversal.
+8. Normalize the visual/cognitive system across the complete hierarchy.
+9. Run final authenticated end-to-end certification.
+
+## Absolute anti-fabrication rule
+
+Fake AI financial data is strictly prohibited. Never invent financial values, provider observations, report results, outcomes, confidence, probabilities, causal claims, or missing evidence. Unknown is never zero.
+
+Actual Plaid Sandbox observations are allowed only as explicitly governed Sandbox evidence. Technical mocks may remain isolated to infrastructure tests and must never become production evidence.
+
+## Continuity rule
+
+Always inspect current GitHub, Render, and Supabase before making a material claim or change. Prior chat is context, never proof.
