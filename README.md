@@ -341,3 +341,72 @@ The intelligence hierarchy, Financial-Life state, evidence, reports, education, 
 13. No money movement in the current read-only boundary.
 14. No certification claims without actual proof.
 15. Forward and reverse traversal are first-class architectural requirements.
+
+## 15. UI, interaction, and end-to-end proof gate
+
+The complete UI is now treated as a governed traversal surface rather than a collection of independent pages.
+
+The authoritative workspace registry defines the reachable workspace graph. Every registered workspace destination is routed explicitly; an unknown route is never silently substituted with another page.
+
+Registered workspace surfaces must read actual persisted overview/provider data and certified intelligence when available. They must not populate a page with invented metrics merely because the page exists in navigation.
+
+The UI proof sequence is:
+
+```text
+workspace registry
+→ route resolution
+→ rendered surface
+→ governed API read
+→ real observed/certified data
+→ truthful state
+→ interactive control
+→ destination/action
+→ downstream hierarchy node
+→ reverse traversal to evidence where supported
+```
+
+A control is considered functional only when its handler invokes the intended real behavior and the success, loading, empty, insufficient-evidence and failure states are truthful.
+
+The current frontend implementation includes an evidence-backed workspace surface for registered Financial-Life destinations. Workspace pages use the authoritative consumer intelligence contract rather than an ad-hoc client-side financial schema.
+
+The UI must never use visual completeness as a substitute for runtime proof.
+
+## 16. Intelligence-to-content correctness gate
+
+Every intelligence capability must remain connected to the unified IRIS hierarchy and its supported content surfaces.
+
+The publication chain is:
+
+```text
+real provider evidence
+→ canonical state
+→ governed capability
+→ exact upstream dependencies
+→ semantic transformation
+→ persisted intelligence node/output
+→ certification gate
+→ report/question/explanation/education/workspace content
+→ user
+```
+
+If an upstream capability is insufficiently evidenced, downstream intelligence must not invent a substitute result. If a report, question, explanation, education item or workspace surface lacks legitimate supporting content, it must not manufacture content to fill the UI.
+
+Questions, explanations and education are contextual traversal surfaces of the same hierarchy. They are not a separate AI-data source.
+
+## 17. Current verification rule
+
+Structural mapping, successful compilation, route existence and deployment are necessary but are not by themselves end-to-end certification.
+
+End-to-end certification requires authenticated runtime traversal and reconciliation of:
+
+- UI action;
+- API request;
+- backend execution;
+- governed evidence boundary;
+- persisted output;
+- exact lineage;
+- certification state;
+- displayed content; and
+- reverse traversal.
+
+Until that proof exists, the state remains explicitly unverified rather than being represented as 100% complete.
