@@ -46,6 +46,8 @@ irisRouter.post("/iris/ask", requireAuth, async (req: AuthedRequest, res) => {
     const run = await executeIrisRun({ userId, requestId: typeof suppliedRequestId === "string" && suppliedRequestId.trim() ? suppliedRequestId.trim() : undefined, surface: "iris_ask", mode: resolved.intent });
     const intelligence = run.result;
     if (!intelligence) return res.status(503).json({ error: "Iris could not complete the question from the current evidence", certified: false, run_id: run.id ?? null });
+    const certified = run.status === "CERTIFIED" && run.certified === true && typeof run.certification_hash === "string" && run.certification_hash.length > 0;
+    if (!certified) return res.status(409).json({ error: "Iris intelligence is not certified for publication", certified: false, run_id: run.id ?? null, execution_id: run.execution_id ?? null, status: run.status, certification_gate: run.certification_gate ?? null, publication_boundary: { status: "blocked", reason: "CERTIFICATION_REQUIRED", derived_intelligence_publication: false } });
     const [{ data: accounts, error: accountError }, providerLineage, providerEvidence, trialProductIntelligence] = await Promise.all([
       supabaseAdmin.from("plaid_accounts").select("id").eq("user_id", userId),
       verifyProviderLineage(supabaseAdmin, userId),
@@ -57,6 +59,6 @@ irisRouter.post("/iris/ask", requireAuth, async (req: AuthedRequest, res) => {
     const reasoningTrace = buildReasoningTrace(resolved.intent, intelligence.evidence_graph);
     const providerAnswer = answerProviderQuestion(question, providerEvidence);
     const answer = answerFor(resolved.intent, intelligence, accounts?.length ?? 0, evidencePlan, providerAnswer, trialProductIntelligence);
-    res.json({ run_id: run.id ?? null, execution_id: run.execution_id ?? null, certified: run.certified === true, certification_gate: run.certification_gate ?? null, question: resolved.normalizedQuestion, context: resolved.context, generated_at: new Date().toISOString(), provider_lineage: providerLineage, provider_evidence: providerEvidence, trial_product_intelligence: trialProductIntelligence, reasoning_trace: reasoningTrace, ...answer });
+    res.json({ run_id: run.id ?? null, execution_id: run.execution_id ?? null, certified: true, certification_hash: run.certification_hash, certification_gate: run.certification_gate ?? null, question: resolved.normalizedQuestion, context: resolved.context, generated_at: new Date().toISOString(), provider_lineage: providerLineage, provider_evidence: providerEvidence, trial_product_intelligence: trialProductIntelligence, reasoning_trace: reasoningTrace, ...answer });
   } catch (error) { console.error("Iris question failed", error); res.status(500).json({ error: "Iris could not complete the question from the current evidence" }); }
 });
