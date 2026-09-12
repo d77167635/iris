@@ -37,7 +37,7 @@ export async function getCanonicalTransactions(userId: string, since?: string, e
   }
 
   let query = supabaseAdmin.from("transactions")
-    .select("id, account_id, raw_transaction_id, amount, posted_date, transaction_class, classification_evidence, plaid_category_primary, plaid_category_detailed, merchant_id, merchant_name, merchants(canonical_name), subdomains(key, label, domains(key, label)), plaid_raw_transactions!inner(acquired_at,is_current,evidence_state)")
+    .select("id, account_id, raw_transaction_id, amount, posted_date, transaction_class, classification_evidence, plaid_category_primary, plaid_category_detailed, merchant_id, merchant_name, merchants(canonical_name), subdomains(key, label, domains(key, label)), plaid_raw_transactions!transactions_raw_transaction_id_fkey(acquired_at,is_current,evidence_state)")
     .eq("user_id", userId).eq("is_active", true).eq("pending", false)
     .in("account_id", accountIds).in("classification_evidence", ["observed", "calculated"])
     .eq("plaid_raw_transactions.is_current", true).eq("plaid_raw_transactions.evidence_state", "observed");
