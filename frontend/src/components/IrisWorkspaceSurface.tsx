@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api/backend";
+import type { IrisConsumerIntelligenceResponse } from "../contracts/irisConsumer";
 import { findWorkspace } from "./irisWorkspaceRegistry";
 
 type Props = { page: string; go?: (page: string) => void };
 type Overview = { accounts?: Array<Record<string, unknown>>; recent_transactions?: Array<Record<string, unknown>> };
-type Intelligence = Record<string, any> & { certified?: boolean; certification_gate?: { eligible?: boolean } };
+type Intelligence = IrisConsumerIntelligenceResponse;
 
 const money = (value: unknown) => {
   if (value === null || value === undefined || value === "") return "—";
@@ -54,7 +55,8 @@ export function IrisWorkspaceSurface({ page, go }: Props) {
     const debt = intel?.debt_health ?? {};
     const net = intel?.net_worth ?? {};
     const spending = Array.isArray(intel?.spending_hierarchy) ? intel.spending_hierarchy : [];
-    const recurring = Array.isArray(intel?.recurring_series) ? intel.recurring_series : Array.isArray(intel?.recurring) ? intel.recurring : [];
+    const recurringValue = intel?.recurring_series ?? intel?.recurring;
+    const recurring = Array.isArray(recurringValue) ? recurringValue : [];
     const anomalies = Array.isArray(intel?.anomalies) ? intel.anomalies : [];
     const projection = intel?.forward_projection?.series;
     if (page.startsWith("money")) return [["Accounts", count(accounts), "Observed persisted accounts"], ["Liquid assets", certified ? money(net.liquid_assets) : "—", certified ? "Certified calculation" : "Intelligence publication blocked"], ["Transactions", count(transactions), "Observed transaction records"]];
