@@ -6,6 +6,7 @@ import { persistRecursiveLineage } from "./recursiveLineage.js";
 import { persistUserIntelligenceGraph } from "./persistedIntelligenceGraph.js";
 import { materializeArbitraryRecursiveCompositions } from "./arbitraryRecursiveComposition.js";
 import { evaluateCertificationGate } from "./certificationGate.js";
+import { materializeIrisUserReportInventory } from "./irisUserReportComposer.js";
 import { resolveCanonicalProviderItem, IRIS_CANONICAL_PROVIDER_DOMAINS, type IrisEvidenceScope } from "./evidenceScope.js";
 
 const PLANNER_VERSION = "iris-capability-planner-v7";
@@ -99,6 +100,7 @@ export async function executeIrisRun(request: RunRequest) {
     const { error: certificationError } = await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, result_id: execution.id, policy_version: CERTIFICATION_POLICY_VERSION, status: "CERTIFIED", validation_snapshot: { status: "PASS", checks: gate.checks }, reconciliation_snapshot: gate.reconciliation_snapshot, evidence_snapshot: gate.evidence_snapshot, certification_hash: certificationHash, certified_at: new Date().toISOString() });
     if (certificationError) { await failExecution(run.id, execution.id, userId, "CERTIFICATION_PERSIST_FAILED", certificationError.message); throw new Error(`Unable to persist Iris certification: ${certificationError.message}`); }
     const certifiedAt = new Date().toISOString(); await supabaseAdmin.from("iris_execution_records").update({ validation_status: "PASS", certification_status: "CERTIFIED" }).eq("id", execution.id).eq("user_id", userId); await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: certifiedAt, updated_at: certifiedAt }).eq("id", run.id).eq("user_id", userId);
+    await materializeIrisUserReportInventory({ userId, runId: run.id, executionId: execution.id, certificationHash });
     return { ...run, id: run.id, status: "CERTIFIED", execution_id: execution.id, result, certified: true, certification_hash: certificationHash, certification_gate: gate };
   } catch (error) { await failExecution(run.id, execution.id, userId, "INTELLIGENCE_EXECUTION_FAILED", errorText(error)); throw error; }
 }
