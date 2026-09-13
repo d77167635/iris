@@ -70,9 +70,9 @@ export async function processWebhookEvent(eventId: string) {
   if (event.processed) return;
 
   if (event.webhook_type === "TRANSACTIONS" && event.webhook_code === "SYNC_UPDATES_AVAILABLE") {
-    const { data: item, error: itemError } = await supabaseAdmin.from("plaid_items").select("id, user_id, plaid_access_token, last_synced_at").eq("plaid_item_id", event.plaid_item_id).single();
+    const { data: item, error: itemError } = await supabaseAdmin.from("plaid_items").select("id, user_id, plaid_access_token, last_synced_at, status").eq("plaid_item_id", event.plaid_item_id).single();
     if (itemError) throw itemError;
-    if (item) {
+    if (item && item.status !== "disconnected" && item.status !== "disconnecting") {
       const accessToken = await getPlaidAccessToken(item.id, item.user_id, item.plaid_access_token);
       const syncKey = `plaid-webhook:${event.id}`;
       await fullSyncForItem(item.id, item.user_id, accessToken, syncKey);
@@ -80,8 +80,13 @@ export async function processWebhookEvent(eventId: string) {
   }
 
   if (event.webhook_type === "ITEM" && event.webhook_code === "ERROR") {
-    const { error: itemUpdateError } = await supabaseAdmin.from("plaid_items").update({ status: "pending_reauth", last_webhook_code: event.webhook_code }).eq("plaid_item_id", event.plaid_item_id);
+    const { error: itemUpdateError } = await supabaseAdmin.from("plaid_items").update({ status: "pending_reauth", last_webhook_code: event.webhook_code }).eq("plaid_item_id", event.plaid_item_id).neq("status", "disconnected");
     if (itemUpdateError) throw itemUpdateError;
+  }
+
+  if (event.webhook_type === "ITEM" && ["USER_PERMISSION_REVOKED", "USER_ACCOUNT_REVOKED"].includes(event.webhook_code)) {
+    const { error: revokedError } = await supabaseAdmin.from("plaid_items").update({ status: "disconnected", last_webhook_code: event.webhook_code }).eq("plaid_item_id", event.plaid_item_id);
+    if (revokedError) throw revokedError;
   }
 
   const { error: processedError } = await supabaseAdmin.from("plaid_webhook_events").update({ processed: true, processed_at: new Date().toISOString() }).eq("id", eventId).eq("processed", false);
