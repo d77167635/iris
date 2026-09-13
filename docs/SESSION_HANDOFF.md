@@ -20,17 +20,35 @@ There are no two IRIS sides. Financial Life, evidence, ontology, intelligence, r
 
 Any supported IRIS surface may expose supported user-specific evidence and/or derived intelligence when the governing evidence, lineage, uncertainty, authorization, runtime, and certification/publication state permits it.
 
-## Current verified provider boundary
+## Provider boundary
 
-The specific Plaid Sandbox → Supabase Item/data path previously reconciled is verified. The claim is intentionally scoped to that tested path and does not automatically certify the broader current multi-Item population.
+The specifically reconciled Plaid Sandbox → Supabase Item/data path is verified for the tested path. The claim does not automatically certify the broader current multi-Item population.
 
-Statements remains architecturally authoritative but is deferred from the current Sandbox evidence boundary until real banking.
+The current full-intelligence execution path requires one independently governed canonical Item and does not silently aggregate multiple Items. Statements remains architecturally authoritative but is deferred from the current Sandbox evidence boundary until real banking.
 
-## Current runtime blocker
+## Runtime defect found and fixed
 
-The live Supabase project currently contains recent full-intelligence runs that fail with `RECURSIVE_CAPABILITY_EXECUTION_FAILED`, including failures reporting `DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED`.
+The prior execution boundary persisted only generic provider product observations into `iris_run_evidence`, while run-bound transaction, balance and liability consumers require the exact typed raw observations they consume.
 
-Current observed certification/output state:
+The current implementation now persists exact current observed product, transaction, balance and liability evidence for the selected canonical Item, with typed evidence records, hashes, timestamps and exact Item/account scope. It also refuses silent user-level Item aggregation and preserves precise execution failure state.
+
+The backend and frontend deployments for this workstream reached `live` status.
+
+**Fresh authenticated execution is still required to prove that the corrected runtime produces persisted intelligence output and certification.**
+
+## UI defects found and fixed
+
+- Registered Financial-Life destinations now receive route-specific governed content instead of intentionally collapsing into a generic command surface.
+- Unsupported routes are explicitly rejected.
+- Navigation descriptions are visible again.
+- Route metrics, records, child traversal and truth-state messaging use the shared IRIS visual grammar.
+- Derived values remain certification-gated.
+
+Authenticated route-by-route and control-by-control verification is still required.
+
+## Current observed Supabase certification state
+
+The pre-fix live snapshot contained:
 
 - `iris_runs`: 20
 - `iris_execution_records`: 20
@@ -43,31 +61,26 @@ Current observed certification/output state:
 - report dependencies: 267
 - semantic dependency proofs: 19
 
-Do not suppress this failure with fallback or invented intelligence. The exact deployed runtime defect must be identified and corrected.
+These are observations, not completion claims.
 
-## Current UI blocker
+## Required next verification sequence
 
-The workspace registry is authoritative, but `App.tsx` still routes many registered destinations through the generic `IrisWorkspaceSurface`. That surface is evidence-backed but does not yet provide the real domain-specific behavior of every route.
+1. Trigger/observe a fresh authenticated full-intelligence run against the current canonical Item.
+2. Verify `iris_run_evidence` contains exact typed transaction/balance/liability evidence for that Item.
+3. Verify every capability consumes only its declared upstream dependencies.
+4. Verify recursive graph nodes and lineage persist.
+5. Verify execution output persists.
+6. Verify certification gate behavior.
+7. Verify report publication state separately from report definitions.
+8. Traverse the UI route-by-route and control-by-control.
+9. Verify forward and reverse lineage.
+10. Update README/ROADMAP/MASTER_STATE/session continuity only from verified results.
 
-The visual shell also needs complete cognition/style normalization and every control requires end-to-end verification.
-
-## Required work sequence
-
-1. Correct any remaining contradictory documentation before implementation changes.
-2. Audit the exact deployed recursive execution failure against current GitHub code and live Supabase contracts/data.
-3. Fix the actual dependency/semantic execution defect.
-4. Audit after the fix and prove a real run can produce persisted output before claiming intelligence certification.
-5. Reconcile current multi-Item evidence scope and prevent cross-Item/user aggregation errors.
-6. Replace generic workspace behavior with route-specific governed surfaces.
-7. Verify every route, control, loading/empty/error/insufficient state, and forward/reverse traversal.
-8. Normalize the visual/cognitive system across the complete hierarchy.
-9. Run final authenticated end-to-end certification.
-
-## Absolute anti-fabrication rule
+## Anti-fabrication rule
 
 Fake AI financial data is strictly prohibited. Never invent financial values, provider observations, report results, outcomes, confidence, probabilities, causal claims, or missing evidence. Unknown is never zero.
 
-Actual Plaid Sandbox observations are allowed only as explicitly governed Sandbox evidence. Technical mocks may remain isolated to infrastructure tests and must never become production evidence.
+Actual Plaid Sandbox observations are allowed only as explicitly governed Sandbox evidence. Technical mocks may remain isolated to infrastructure tests and must never become production financial evidence.
 
 ## Continuity rule
 
