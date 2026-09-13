@@ -111,7 +111,7 @@ export async function executeLevel1MasterIntelligence(userId: string) {
     lineage_hash: hash({ run_id: run.id, execution_id: execution.id, source_type: e.product, source_id: e.source_id, output: "level1_governance_certificate" }), metadata: { output_key: "level1_governance_certificate", item_id: item.id, source_of_truth: "supabase" } }));
   lineage.push({ user_id: userId, run_id: run.id, execution_id: execution.id, lineage_role: "OUTPUT_DERIVATION", source_type: "iris_execution", source_id: execution.id, source_field_path: null,
     destination_type: "iris_execution_output", destination_id: execution.id, destination_field_path: null, evidence_state: "OBSERVED", transformation: "governance_certificate", source_hash: manifestHash,
-    lineage_hash: hash({ run_id: run.id, execution_id: execution.id, output_hash: outputHash }), metadata: { output_key: "level1_governance_certificate" } });
+    lineage_hash: hash({ run_id: run.id, execution_id: execution.id, output_hash: outputHash }), metadata: { output_key: "level1_governance_certificate", item_id: item.id, source_of_truth: "supabase" } });
   await insertBatched("iris_execution_lineage", lineage as unknown as Record<string, unknown>[]);
 
   const count = async (table: string, filters: Record<string, string>) => {
@@ -148,18 +148,19 @@ export async function executeLevel1MasterIntelligence(userId: string) {
   }
 
   const checksObject = Object.fromEntries(checks.map(([id, pass]) => [id, { status: pass ? "PASS" : "FAIL" }]));
-  const reconciliationSnapshot = { status: "PASS", source_record_count: evidence.length, execution_lineage_count: executionLineageCount, field_lineage_count: fieldLineageCount, user_financial_content_node_count: nodeCount, user_financial_edge_count: edgeCount, user_financial_composition_count: compositionCount };
-  const evidenceSnapshot = { evidence_state: "OBSERVED", evidence_count: evidence.length, evidence_manifest_hash: manifestHash, source_counts: sourceCounts };
-  const certificationHash = hash({ run_id: run.id, execution_id: execution.id, input_hash: manifestHash, output_hash: outputHash, policy: "iris-level1-governance-certification-v1", checks: checksObject });
-  const certifiedAt = new Date().toISOString();
+  const reconciliationSnapshot = { status: "PASS", source_record_count: evidence.length, execution_lineage_count: executionLineageCount, field_lineage_count: fieldLineageCount, user_financial_content_node_count: nodeCount, user_financial_edge_count: edgeCount, user_financial_composition_count: compositionCount, financial_content_output: false };
+  const evidenceSnapshot = { evidence_state: "OBSERVED", evidence_count: evidence.length, manifest_hash: manifestHash, source_counts: sourceCounts };
+  const validationSnapshot = { status: "PASS", checks: checksObject };
+  const { error: executionUpdateError } = await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", validation_status: "PASS", output_hash: outputHash, validation_snapshot: validationSnapshot, reconciliation_snapshot: reconciliationSnapshot, evidence_snapshot: evidenceSnapshot, publication_status: "HIERARCHY_PENDING" }).eq("id", execution.id).eq("user_id", userId);
+  if (executionUpdateError) throw new Error(`LEVEL1_EXECUTION_UPDATE_FAILED:${executionUpdateError.message}`);
 
-  const { error: executionReadyError } = await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", completed_at: certifiedAt, output_hash: outputHash, output_snapshot: { output_key: "level1_governance_certificate", output_hash: outputHash, financial_content_output: false }, validation_status: "PASS" }).eq("id", execution.id).eq("user_id", userId);
-  if (executionReadyError) throw new Error(`LEVEL1_EXECUTION_READY_FAILED:${executionReadyError.message}`);
-  const { error: certificationError } = await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, result_id: execution.id, policy_version: "iris-level1-governance-certification-v1", status: "CERTIFIED", validation_snapshot: { status: "PASS", checks: checksObject }, reconciliation_snapshot: reconciliationSnapshot, evidence_snapshot: evidenceSnapshot, certification_hash: certificationHash, certified_at: certifiedAt });
+  const { error: certificationError } = await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, level: LEVEL, status: "CERTIFIED", certification_version: "iris-level1-governance-certification-v1", certified_at: new Date().toISOString(), validation_snapshot: validationSnapshot, reconciliation_snapshot: reconciliationSnapshot, evidence_snapshot: evidenceSnapshot, output_hash: outputHash });
   if (certificationError) throw new Error(`LEVEL1_CERTIFICATION_WRITE_FAILED:${certificationError.message}`);
-  const { error: executionUpdateError } = await supabaseAdmin.from("iris_execution_records").update({ certification_status: "CERTIFIED", publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: certifiedAt }).eq("id", execution.id).eq("user_id", userId);
-  if (executionUpdateError) throw new Error(`LEVEL1_EXECUTION_FINALIZE_FAILED:${executionUpdateError.message}`);
-  const { error: finalRunError } = await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: certifiedAt, updated_at: certifiedAt, publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: certifiedAt }).eq("id", run.id).eq("user_id", userId);
-  if (finalRunError) throw new Error(`LEVEL1_RUN_FINALIZE_FAILED:${finalRunError.message}`);
-  return { runId: run.id, executionId: execution.id, certificationHash, output: governanceOutput };
+
+  const { error: executionCertifiedError } = await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", certification_status: "CERTIFIED", publication_status: "HIERARCHY_PUBLISHED" }).eq("id", execution.id).eq("user_id", userId);
+  if (executionCertifiedError) throw new Error(`LEVEL1_EXECUTION_CERTIFICATION_UPDATE_FAILED:${executionCertifiedError.message}`);
+  const { error: runCertifiedError } = await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", updated_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
+  if (runCertifiedError) throw new Error(`LEVEL1_RUN_CERTIFICATION_UPDATE_FAILED:${runCertifiedError.message}`);
+
+  return { level: LEVEL, role: "governance_only", run_id: run.id, execution_id: execution.id, certification_status: "CERTIFIED", output_key: "level1_governance_certificate", financial_content_output: false, source_counts: sourceCounts, evidence_count: evidence.length, manifest_hash: manifestHash, output_hash: outputHash };
 }
