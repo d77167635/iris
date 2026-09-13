@@ -87,6 +87,7 @@ export default function App() {
   const isScenarioPage = irisPage === "iris/scenarios";
   const isSpecialPage = irisPage === "iris/connect" || irisPage === "iris/catalog" || irisPage === "iris/reports" || irisPage === "iris/action" || irisPage === "iris/outcomes" || irisPage === "iris/decisions" || irisPage === "iris/behavior" || irisPage === "iris/reasoning" || isIntelligencePage || isScenarioPage || irisPage === "iris/evidence" || irisPage === "iris/state";
   const isRegisteredWorkspace = Boolean(findWorkspace(irisPage));
+  const knownRoute = irisPage === "iris" || isSpecialPage || isRegisteredWorkspace;
   let content;
   if (irisPage === "iris/connect") content = <IrisEvidenceAccess go={navigate} />;
   else if (irisPage === "iris/catalog") content = <IrisCatalog go={navigate} />;
@@ -99,8 +100,8 @@ export default function App() {
   else if (isIntelligencePage) content = <IrisIntelligenceSurface page={irisPage} go={navigate} />;
   else if (isScenarioPage) content = <IrisScenarioSurface go={navigate} />;
   else if (irisPage === "iris") content = <IrisFinancialLifeHome go={navigate} />;
-  else if (isSpecialPage || isRegisteredWorkspace) content = <IrisWorkspaceSurface page={irisPage} go={navigate} />;
-  else content = <IrisCommandSurface page={irisPage} go={navigate} />;
+  else if (isRegisteredWorkspace) content = <IrisWorkspaceSurface page={irisPage} go={navigate} />;
+  else content = <main className="iris4-screen"><div className="iris4-empty"><span>IRIS</span><strong>Workspace unavailable</strong><p>This destination is not registered. IRIS will not silently substitute another workspace.</p><button type="button" onClick={() => navigate("iris")}>Return to Financial Life</button></div></main>;
 
-  return <IrisExperienceShell page={irisPage} go={navigate}><div className="app-workspace app-workspace-iris">{content}{account}</div></IrisExperienceShell>;
+  return <IrisExperienceShell page={knownRoute ? irisPage : "iris"} go={navigate}><div className="app-workspace app-workspace-iris">{content}{account}</div></IrisExperienceShell>;
 }
