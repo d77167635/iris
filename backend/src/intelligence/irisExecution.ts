@@ -19,7 +19,11 @@ const DEFAULT_REQUESTED_CAPABILITIES = [CAPABILITY_ID];
 
 type RunRequest = { userId: string; requestId?: string; surface?: string; mode?: string; requestedCapabilities?: string[] };
 function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
-function errorText(error: unknown): string { return error instanceof Error ? error.message : String(error); }
+function errorText(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  try { return JSON.stringify(error); } catch { return String(error); }
+}
 
 /** The single governed Iris execution boundary. A full-intelligence request expands through the persisted capability registry and executes the resulting dependency graph; produced outputs are also materialized as a durable user intelligence graph without imposing a semantic depth ceiling. */
 export async function executeIrisRun(request: RunRequest) {
