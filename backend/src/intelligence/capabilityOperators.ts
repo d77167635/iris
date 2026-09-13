@@ -1,5 +1,5 @@
 import { assessTrajectory } from "./temporal.js";
-import { getCanonicalTransactions, computeCanonicalWindowFlows } from "./transactionSemantics.js";
+import { getCanonicalTransactions, computeCanonicalWindowFlows, computeEconomicCashFlow } from "./transactionSemantics.js";
 import { executeAnalysis, executeBehavioral, executePattern, executeRelationship, executeAnomaly, executeCausal, executePredictive, executeScenario, executeDecision, executeRecommendation, executeOutcome, executeLearning } from "./recursiveOperators.js";
 import { executeFinancialLifeState, executeRelationalOntology } from "./foundationalIntelligenceOperators.js";
 import { executeRisk, executeOpportunity, executeConsequence } from "./riskOpportunityConsequenceOperators.js";
@@ -59,6 +59,31 @@ function evidenceGated(capabilityId: string, execute: NonNullable<CapabilityOper
   };
 }
 
+/** Correct the predictive operator's historical daily rate using the actual observed transaction span in this run. */
+const executePredictiveAccurate: NonNullable<CapabilityOperator["execute"]> = async (userId, context) => {
+  const base = await executePredictive(userId, context);
+  if (base.evidence_state === "INSUFFICIENT_EVIDENCE") return base;
+  const transactions = await getCanonicalTransactions(userId, new Date((context?.asOf ? new Date(context.asOf) : new Date()).getTime() - 365 * 86_400_000).toISOString().slice(0, 10), context?.evidenceBoundary ?? context?.asOf ?? null, context?.runId ?? null);
+  if (transactions.length < 2) return base;
+  const times = transactions.map(tx => new Date(tx.posted_date).getTime()).filter(Number.isFinite);
+  if (times.length < 2) return base;
+  const spanDays = Math.max(1, Math.ceil((Math.max(...times) - Math.min(...times)) / 86_400_000) + 1);
+  const net = computeEconomicCashFlow(transactions).net;
+  return { ...base, result: { ...base.result, historical_daily_net_rate: net / spanDays, historical_observation_span_days: spanDays } };
+};
+
+/** Force semantic access to the exact decision inputs before the legacy decision calculation runs. The accessed fields are then carried into the decision basis. */
+const executeDecisionAccurate: NonNullable<CapabilityOperator["execute"]> = async (userId, context) => {
+  const scenario = context?.dependencyResults?.scenario?.result;
+  const risk = context?.dependencyResults?.risk?.result;
+  const scenarioOutputs = scenario?.scenarios;
+  const riskSignals = risk?.risk_signals;
+  if (scenarioOutputs === undefined || riskSignals === undefined) {
+    return { capability_id: "decision", operator_id: "decision", operator_version: "1.0.0", evidence_state: "INSUFFICIENT_EVIDENCE", result: { options: [], limitation: "Decision requires scenario scenarios and risk signals as governed upstream outputs." } };
+  }
+  return executeDecision(userId, context);
+};
+
 function op(capability_id: string, execute: CapabilityOperator["execute"], evidence_state: CapabilityOperatorResult["evidence_state"], execution_stage: string, version = "1.0.0"): CapabilityOperator { return { capability_id, operator_id: capability_id, version, status: "implemented", execution_stage, evidence_state, execute: execute ? evidenceGated(capability_id, execute) : undefined }; }
 const financialLifeStateOperator: CapabilityOperator = op("financial_life_state", executeFinancialLifeState, "CALCULATED", "canonical_financial_life_state");
 const relationalOntologyOperator: CapabilityOperator = { capability_id: "relational_ontology", operator_id: "relational_ontology", version: "1.0.0", status: "implemented", execution_stage: "relational_ontology_expansion", evidence_state: "CALCULATED", execute: executeRelationalOntology };
@@ -78,6 +103,6 @@ const emergentOperator: CapabilityOperator = {
 
 export const EXECUTABLE_CAPABILITY_OPERATORS: CapabilityOperator[] = [
   temporalOperator, financialLifeStateOperator, relationalOntologyOperator,
-  op("analysis", executeAnalysis, "CALCULATED", "canonical_semantic_analysis"), op("behavioral", executeBehavioral, "CALCULATED", "category_behavior"), op("pattern", executePattern, "CALCULATED", "pattern_composition"), op("relationship", executeRelationship, "INFERRED", "financial_relationship_analysis"), op("anomaly", executeAnomaly, "CALCULATED", "canonical_anomaly_detection"), op("causal", executeCausal, "INFERRED", "observational_candidate_analysis"), op("predictive", executePredictive, "PREDICTED", "constrained_forward_projection"), op("scenario", executeScenario, "SCENARIO", "counterfactual_spending_analysis"), op("decision", executeDecision, "INFERRED", "decision_intelligence"), op("recommendation", executeRecommendation, "INFERRED", "review_recommendations"), op("risk", executeRisk, "INFERRED", "risk_signal_synthesis"), op("opportunity", executeOpportunity, "INFERRED", "opportunity_investigation_synthesis"), op("consequence", executeConsequence, "INFERRED", "conditional_consequence_propagation"), op("outcome", executeOutcome, "CALCULATED", "durable_outcome_loop"), op("learning", executeLearning, "INFERRED", "validated_outcome_learning", "1.1.0"), emergentOperator,
+  op("analysis", executeAnalysis, "CALCULATED", "canonical_semantic_analysis"), op("behavioral", executeBehavioral, "CALCULATED", "category_behavior"), op("pattern", executePattern, "CALCULATED", "pattern_composition"), op("relationship", executeRelationship, "INFERRED", "financial_relationship_analysis"), op("anomaly", executeAnomaly, "CALCULATED", "canonical_anomaly_detection"), op("causal", executeCausal, "INFERRED", "observational_candidate_analysis"), op("predictive", executePredictiveAccurate, "PREDICTED", "constrained_forward_projection"), op("scenario", executeScenario, "SCENARIO", "counterfactual_spending_analysis"), op("decision", executeDecisionAccurate, "INFERRED", "decision_intelligence"), op("recommendation", executeRecommendation, "INFERRED", "review_recommendations"), op("risk", executeRisk, "INFERRED", "risk_signal_synthesis"), op("opportunity", executeOpportunity, "INFERRED", "opportunity_investigation_synthesis"), op("consequence", executeConsequence, "INFERRED", "conditional_consequence_propagation"), op("outcome", executeOutcome, "CALCULATED", "durable_outcome_loop"), op("learning", executeLearning, "INFERRED", "validated_outcome_learning", "1.1.0"), emergentOperator,
 ];
 export function getCapabilityOperator(capabilityId: string): CapabilityOperator | null { return EXECUTABLE_CAPABILITY_OPERATORS.find((operator) => operator.capability_id === capabilityId) ?? null; }
