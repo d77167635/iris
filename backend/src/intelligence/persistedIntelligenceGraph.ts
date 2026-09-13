@@ -11,14 +11,7 @@ function hash(value: unknown): string { return createHash("sha256").update(JSON.
 function normalizeUpstream(upstream: UpstreamNodeReference[]): UpstreamNodeReference[] { const seen = new Set<string>(); return upstream.filter((r) => typeof r.nodeId === "string" && r.nodeId.length > 0).filter((r) => { if (seen.has(r.nodeId)) return false; seen.add(r.nodeId); return true; }).sort((a, b) => a.nodeId.localeCompare(b.nodeId)); }
 function normalizeEvidenceState(state: ArbitraryDerivedIntelligenceDefinition["evidenceState"]): GraphEvidenceState { return state === "LIMITED" ? "INSUFFICIENT_EVIDENCE" : state; }
 
-async function requireCertifiedRun(input: { userId: string; runId: string; executionId: string }): Promise<void> {
-  const { data, error } = await supabaseAdmin.from("iris_certifications").select("id,status").eq("user_id", input.userId).eq("run_id", input.runId).eq("execution_id", input.executionId).eq("status", "CERTIFIED").maybeSingle();
-  if (error) throw new Error(`IRIS_HIERARCHY_CERTIFICATION_LOOKUP_FAILED: ${error.message}`);
-  if (!data) throw new Error("IRIS_HIERARCHY_CERTIFICATION_REQUIRED: hierarchy materialization requires an exact certified run");
-}
-
 export async function persistArbitraryDerivedIntelligenceNode(input: { userId: string; runId: string; executionId: string; definition: ArbitraryDerivedIntelligenceDefinition }): Promise<PersistedNode> {
-  await requireCertifiedRun(input);
   const upstream = normalizeUpstream(input.definition.upstream);
   const evidenceState = normalizeEvidenceState(input.definition.evidenceState);
   if (!input.definition.intelligenceKey.trim()) throw new Error("DERIVED_INTELLIGENCE_KEY_REQUIRED");
