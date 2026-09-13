@@ -111,7 +111,7 @@ export async function executeLevel1MasterIntelligence(userId: string) {
     lineage_hash: hash({ run_id: run.id, execution_id: execution.id, source_type: e.product, source_id: e.source_id, output: "level1_governance_certificate" }), metadata: { output_key: "level1_governance_certificate", item_id: item.id, source_of_truth: "supabase" } }));
   lineage.push({ user_id: userId, run_id: run.id, execution_id: execution.id, lineage_role: "OUTPUT_DERIVATION", source_type: "iris_execution", source_id: execution.id, source_field_path: null,
     destination_type: "iris_execution_output", destination_id: execution.id, destination_field_path: null, evidence_state: "OBSERVED", transformation: "governance_certificate", source_hash: manifestHash,
-    lineage_hash: hash({ run_id: run.id, execution_id: execution.id, output_hash: outputHash }), metadata: { output_key: "level1_governance_certificate", financial_content_output: false } });
+    lineage_hash: hash({ run_id: run.id, execution_id: execution.id, output_hash: outputHash }), metadata: { output_key: "level1_governance_certificate" } });
   await insertBatched("iris_execution_lineage", lineage as unknown as Record<string, unknown>[]);
 
   const count = async (table: string, filters: Record<string, string>) => {
