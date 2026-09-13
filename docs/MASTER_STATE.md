@@ -7,7 +7,7 @@
 - Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Current main tip verified during this workstream: `c00760cf8ace90571574ba0753a1831246261dd5`
+- Current main tip verified during this workstream: `d57424b7881663086c59f7c09d92f258a5b59c09`
 - Connected Supabase project: `uhcrdehjwaghqvydaqnn`
 - Current Render workspace: `tea-dai0jth42hec73araong`
 - Frontend: `iris-frontend-cuy3.onrender.com`
@@ -84,6 +84,18 @@ The route parser now accepts every `workspace/<registered-or-traversable-path>` 
 
 The corrected frontend commit was deployed through Render. The subsequent continuity deployment containing that change is currently live.
 
+## Security hardening completed during this workstream
+
+Live Supabase security advisors initially identified two internal `SECURITY DEFINER` RPCs that were executable by `anon` and `authenticated` roles. The live privilege boundary was corrected so:
+
+- `expand_iris_run_evidence_to_raw_financial_observations()` — service role only;
+- `materialize_iris_execution_lineage()` — service role only;
+- `anon` execution — verified false;
+- `authenticated` execution — verified false;
+- `service_role` execution — verified true.
+
+The remaining Supabase security advisor finding is **Leaked Password Protection disabled**. The available database-management path does not expose the Auth security setting needed to enable it, so this remains an explicit environment-level blocker rather than being falsely marked complete.
+
 ## Current UI requirements
 
 Every registered destination must have:
@@ -110,19 +122,18 @@ No count is fabricated for visual symmetry.
 
 ## Deployment state
 
-The frontend Render deployment for the route fix reached `live`. The backend Render deployment containing the evidence-binding/runtime code reached `live`; the latest continuity commit was subsequently deployed to the backend and is now `live` as well.
-
-Deployment success is not runtime certification.
+The frontend and backend Render services are live on the current workspace. Deployment success is not runtime certification.
 
 ## Certification blockers still open
 
-1. Fresh authenticated recursive full-intelligence execution after the two runtime corrections.
+1. Fresh authenticated recursive full-intelligence execution after the evidence-binding and semantic-dependency corrections.
 2. Successful materialization of `iris_execution_outputs` and intelligence graph state.
 3. Certification record creation and certified read-model publication.
 4. Complete authenticated route-by-route traversal.
 5. Complete control-by-control interaction verification.
 6. Complete visual/cognition verification across responsive states.
 7. Full authenticated end-to-end journey with forward and reverse lineage proof.
+8. Supabase Auth leaked-password protection enablement.
 
 ## Absolute anti-fabrication rule
 
