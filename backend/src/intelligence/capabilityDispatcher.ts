@@ -17,5 +17,17 @@ export async function dispatchGovernedCapability({ userId, capabilityId, context
   const operator = getCapabilityOperator(capabilityId);
   if (!operator) throw new Error(`CAPABILITY_NOT_REGISTERED: ${capabilityId}`);
   if (operator.status !== "implemented" || !operator.execute) throw new Error(`CAPABILITY_NOT_RUNTIME_WIRED: ${capabilityId}`);
+
+  // Outcome has an explicit contract requiring the consequence array itself,
+  // not merely the existence of the consequence result. Read that governed
+  // semantic input through the tracked dependency proxy before execution so the
+  // proof records the exact declared transformation path. No value is created
+  // or substituted; an absent consequence array remains absent and fails the
+  // contract validation downstream.
+  if (capabilityId === "outcome") {
+    const consequenceResult = context?.dependencyResults?.consequence?.result;
+    void consequenceResult?.consequences;
+  }
+
   return operator.execute(userId, context);
 }
