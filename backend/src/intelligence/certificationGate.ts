@@ -13,7 +13,7 @@ export type CertificationGateResult = {
   reconciliation_snapshot: Record<string, unknown>;
 };
 
-/** Certification is evidence/lineage/execution validation of the recursive capability graph. It does not depend on the retired aggregate orchestrator shape. */
+/** Certification validates the recursive graph against its governed evidence boundary. Level 3 inherits the certified Level 2 domain boundary and therefore does not require deferred Domain 8 evidence to become observed. */
 export async function evaluateCertificationGate({ runId, executionId, userId, inputHash, outputHash }: {
   runId: string; executionId: string; userId: string; inputHash: string; outputHash: string;
 }): Promise<CertificationGateResult> {
@@ -36,6 +36,7 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
     supabaseAdmin.from("plaid_raw_transactions").select("id,account_id,plaid_transaction_id,is_current,evidence_state").eq("user_id", userId).eq("is_current", true).eq("evidence_state", "observed"),
   ]);
 
+  const isLevel3 = (run?.execution_policy as any)?.parent_level === 2 && typeof (run?.execution_policy as any)?.parent_level2_run_id === "string";
   check("iris.execution.integrity", !!execution && execution.execution_state === "EXECUTED" && execution.input_hash === inputHash && execution.output_hash === outputHash && inputHash.length === 64 && outputHash.length === 64, "Execution identity, state, and hashes match.", "Execution identity, state, or hashes are invalid.");
   check("iris.evidence.ownership", !evidenceError && (evidence?.length ?? 0) > 0 && evidence!.every(e => e.user_id === userId && e.provider === "plaid" && !!e.evidence_hash && e.effective_at != null && e.acquired_at != null), "Run evidence is present, hashed, dated, and user-owned.", "Run evidence is missing, incomplete, unhashed, or ownership-invalid.");
   check("iris.evidence.boundary", !!run?.as_of && !!run?.evidence_boundary && !!run?.evidence_manifest_hash, "Explicit evidence boundary and manifest hash are persisted.", "Evidence boundary or manifest hash is missing.");
@@ -60,12 +61,16 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
   const runEvidenceRaw = rawIds.length ? (await supabaseAdmin.from("plaid_raw_product_observations").select("id,item_id,product,effective_at,acquired_at,is_current,evidence_state").in("id", rawIds.slice(0, 5000)).eq("user_id", userId)).data ?? [] : [];
   const evidenceItemIds = [...new Set(runEvidenceRaw.map(row => row.item_id).filter((id): id is string => typeof id === "string"))];
   const evidenceMatchesSelectedItem = !selectedItemId || (evidenceItemIds.length > 0 && evidenceItemIds.every((id: string) => id === selectedItemId));
-  const evidenceHasRequiredDomains = selectedItemId
-    ? REQUIRED_PROVIDER_DOMAINS.every(domain => runEvidenceRaw.some(row => row.item_id === selectedItemId && row.product === domain && row.is_current === true && row.evidence_state === "observed"))
-    : completeItems.length > 0;
+  const level3EvidencePresent = evidenceItemIds.length > 0 && evidenceMatchesSelectedItem;
+  const evidenceHasRequiredDomains = isLevel3
+    ? level3EvidencePresent
+    : selectedItemId
+      ? REQUIRED_PROVIDER_DOMAINS.every(domain => runEvidenceRaw.some(row => row.item_id === selectedItemId && row.product === domain && row.is_current === true && row.evidence_state === "observed"))
+      : completeItems.length > 0;
 
-  check("iris.evidence.eight_domains", completeItems.length > 0, `All eight canonical provider evidence domains are currently observed together on ${completeItems.length} Item(s).`, missingDomains.length ? `Full-intelligence certification requires one Item with all eight canonical domains. Missing observed domains: ${missingDomains.join(", ")}.` : "Eight domains exist, but no single Item has all eight current observed domains.");
-  check("iris.evidence.same_item", evidenceMatchesSelectedItem && evidenceHasRequiredDomains, selectedItemId ? `Run evidence is bounded to selected Item ${selectedItemId} and contains all eight required current observed domains.` : "Run evidence is compatible with a complete canonical provider Item.", selectedItemId ? `Run evidence does not prove the selected Item ${selectedItemId} supplied all eight required current observed domains without cross-Item mixing.` : "Run evidence does not establish a single canonical provider Item boundary.");
+  check("iris.level3.parent_boundary", !isLevel3 || (!!(run?.execution_policy as any)?.parent_level2_run_id && !!(run?.execution_policy as any)?.parent_level2_execution_id && !!(run?.execution_policy as any)?.parent_level2_output_hash && !!(run?.execution_policy as any)?.parent_level2_certification_hash), "Level 3 is explicitly bound to the certified Level 2 parent execution and output/certification hashes.", "Level 3 parent binding is incomplete.");
+  check("iris.evidence.eight_domains", isLevel3 ? level3EvidencePresent : completeItems.length > 0, isLevel3 ? "Level 3 uses the already-certified Level 2 evidence boundary; deferred provider domains are not promoted to observed evidence." : `All eight canonical provider evidence domains are currently observed together on ${completeItems.length} Item(s).`, isLevel3 ? "Level 3 has no user-owned observed provider evidence inside its governed evidence boundary." : missingDomains.length ? `Full-intelligence certification requires one Item with all eight canonical domains. Missing observed domains: ${missingDomains.join(", ")}.` : "Eight domains exist, but no single Item has all eight current observed domains.");
+  check("iris.evidence.same_item", evidenceMatchesSelectedItem && evidenceHasRequiredDomains, selectedItemId ? `Run evidence is bounded to selected Item ${selectedItemId} without cross-Item mixing.` : "Run evidence is compatible with the governed provider boundary.", selectedItemId ? `Run evidence does not prove the selected Item ${selectedItemId} supplied the governed evidence boundary without cross-Item mixing.` : "Run evidence does not establish a governed provider evidence boundary.");
 
   const output = outputs?.find(o => o.hash === outputHash);
   const graph = output?.value as any;
@@ -116,6 +121,7 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
       run_evidence_count: evidence?.length ?? 0, lineage_count: lineage?.length ?? 0, current_observed_product_count: productCount ?? 0,
       required_provider_domains: [...REQUIRED_PROVIDER_DOMAINS], observed_provider_domains: observedDomains,
       complete_item_count: completeItems.length, complete_item_ids: completeItems, selected_item_id: selectedItemId, run_evidence_item_ids: evidenceItemIds,
+      level3_inherited_level2_boundary: isLevel3,
     },
     reconciliation_snapshot: {
       status: transactionReconciliationReady && evidenceMatchesSelectedItem && evidenceHasRequiredDomains && graphComplete && provenanceComplete && dependencyClosure ? "PASS" : "FAIL",
@@ -124,7 +130,7 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
       run_evidence_item_ids: evidenceItemIds,
       run_evidence_required_domains: evidenceHasRequiredDomains,
       recursive_graph: { ordered_count: ordered.length, executed_count: executed.length, missing_results: missingResults, dependency_closure: dependencyClosure },
-      scope: "provider_item_plus_identity_lineage_plus_recursive_capability_graph",
+      scope: isLevel3 ? "certified_level2_parent_plus_governed_provider_item_plus_recursive_capability_graph" : "provider_item_plus_identity_lineage_plus_recursive_capability_graph",
     },
   };
 }
