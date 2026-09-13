@@ -1,5 +1,19 @@
 # Iris Changelog
 
+## 2026-09-13
+
+- Reaffirmed the canonical architecture as one complete hierarchy intelligence relational ontology financial life state ecosystem; no two-side Financial Life/Intelligence architecture remains valid.
+- Removed the pre-certification application path that could materialize authoritative hierarchy nodes during recursive execution.
+- Corrected the recursive capability regression fixture that activated real semantic dependency contracts while using a structural mock dispatcher; semantic validation remains enabled.
+- Enforced post-certification-only hierarchy materialization as the authoritative runtime boundary.
+- Preserved independent certification checking for arbitrary recursive compositions.
+- Purged pre-certification hierarchy artifacts so the legitimate persisted hierarchy is currently zero until a real certified run creates the first authoritative nodes, edges, compositions and lineage.
+- Updated README, ROADMAP and documentation authority to distinguish capability infrastructure from actual persisted hierarchy intelligence.
+- Explicitly recorded that documentation, compilation, tests, deployment, definitions and graph machinery do not constitute runtime hierarchy certification.
+- Preserved the permanent prohibition on fake AI data and fabricated financial facts.
+- Preserved the rule that any IRIS surface may expose supported hierarchy content when governed evidence and legitimate derivation permit it; intelligence/education surfaces are not prohibited from showing user financial content merely because of their surface name.
+- Preserved independent Products-versus-Reports counts and truthful unknown/insufficient-evidence states.
+
 ## 2026-09-10
 
 - Corrected the durable Iris architecture so the deleted historical project is not treated as a product, foundation, or architectural source; the current product boundary is Iris, with Round-Ups remaining one feature within Iris.
@@ -27,14 +41,8 @@
 - Added regression coverage for the canonical financial-life ontology, including calculated flow state, activity density, concentration, relationships, transaction-class entities, and empty-evidence behavior.
 - Added regression coverage proving evidence-bound temporal aggregation excludes transactions outside the explicit boundary.
 - Hardened backend test imports so production-required secrets are not required merely to load pure intelligence tests in the CI test environment; production configuration remains fail-fast when required variables are absent.
-- Reconciled the connected Supabase schema: `iris_run_evidence`, `iris_capability_contracts`, `iris_execution_lineage`, `iris_field_lineage_edges`, and `iris_source_field_observations` exist; the previously discussed `iris_intelligence_state_nodes`, `iris_intelligence_state_edges`, and `iris_execution_lineage_links` are not present in the connected project and are not treated as authoritative until introduced through governed migration history.
-- Reconciled the connected capability registry against executable code: the stale active `iris.full_intelligence` contract referenced `computeFullIntelligence` operator version `1`, while the governed executable registry does not expose that capability; migration `076_deactivate_stale_full_intelligence_contract.sql` now preserves the historical row but deactivates that stale contract.
-- Verified the stale `iris.full_intelligence` contract is inactive in the connected Supabase project after migration `076`.
-- Added a production-safe run boundary to provider-domain synthesis: run-bound executions no longer consume the current unscoped provider-domain observation set; provider-domain synthesis is withheld until its source observations can be resolved from the exact run evidence manifest.
-- Bound category-drift analysis to the supplied `asOf` boundary and optional run ID instead of using wall-clock time and unscoped canonical transactions.
-- Bound relational financial reasoning to the exact run transaction manifest and run-bound state when a run is present; debt-cost provider observations remain explicitly insufficient in run context until liability evidence is manifest-bound.
-- Propagated the run ID/evidence boundary through the orchestrator into category drift and relational reasoning.
-- Verified the last known production Render deployment before the current queued changes remains `dep-dahagci01d6s739gk76g`; newer commits are not marked live until Render reports them live.
+- Reconciled the connected Supabase schema and preserved the rule that missing architecture objects are not treated as authoritative until introduced through governed migration history.
+- Added production-safe run boundaries to provider-domain synthesis, category drift and relational financial reasoning.
 
 ## 2026-09-09
 
