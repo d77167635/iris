@@ -2,53 +2,70 @@
 
 ## Current objective
 
-Complete and certify **Level 1 — IRIS Master Intelligence / Master Governor**. Do not advance to Level 2 until Level 1 is verified on the authenticated user screen and the reverse-lineage test passes.
+Complete and certify **Level 3 — Recursive Intelligence** above the already certified and published Level 2 hierarchy. Level 3 is not Temporal-only and is not a fixed 19-level tree. The 19 capability families are reusable recursive operators.
 
-## Critical finding: resync vs reconnect
+## Certified parent
 
-The active Plaid Item is the newest active Item:
+Level 2 is currently certified and published:
 
-- Institution: First Platypus Bank
-- Item created: 2026-09-13 11:09:54 UTC
-- Accounts: 14
-- Transactions: 48
-- Balance observations: 28
-- Liability observations: 6
-- Provider response receipts: 10
+- run: `5a0af473-f2a9-43a4-bbe4-7b0b04aa5df3`
+- execution: `9586ea77-9d14-4c1f-8da6-86b99ab77c3c`
+- status: `CERTIFIED`
+- publication: `HIERARCHY_PUBLISHED`
+- nodes: `10`
+- edges: `4`
+- compositions: `10`
+- execution lineage: `340`
 
-The normal refresh/resync path is executing successfully. The latest refresh produced successful 200 receipts for item, accounts, balance, transactions/sync, and liabilities. `/transactions/sync` processed 2 pages and completed with 0 added, 0 modified, and 0 removed. The transaction sync cursor/checkpoint was persisted.
+## Level 3 contract
 
-Therefore the provider refresh path is not simply broken. The important failure boundary is downstream:
+Level 3 must:
 
-`successful resync response/observation → governed IRIS evidence registration → Level 1 run`
+- preserve the existing Level 2 financial hierarchy;
+- add governed derived intelligence to the same hierarchy;
+- resolve the 19 reusable capability families through the active contract dependency graph;
+- support multiple parents, cross-domain composition and recursive ancestry;
+- remain open-ended with no artificial semantic ceiling;
+- preserve epistemic state and exact provenance; and
+- materialize authoritative nodes only after execution, validation and certification.
 
-Reconnect appears to retrigger evidence because reconnect creates a **new Plaid Item** and performs a fresh Link exchange. The latest reconnect created 48 transaction additions. That is not an acceptable substitute for a working resync-to-evidence path.
+The authoritative contract is `docs/LEVEL3_RECURSIVE_INTELLIGENCE_CONTRACT.md`.
 
-## Required fix
+## 19 capability families
 
-A valid successful resync/provider observation must be capable of entering the governed IRIS evidence path without requiring a reconnect. Do not delete source data or historical Items merely to clean counts.
+Temporal, Financial Life State, Relational Ontology, Analysis, Behavioral, Pattern, Relationship, Anomaly, Causal, Predictive, Scenario, Decision, Recommendation, Risk, Opportunity, Consequence, Outcome, Learning, Emergent.
 
-Required proof:
+These are operators, not semantic levels.
 
-`Plaid resync → provider receipt → raw observation/persisted state → iris_run_evidence → Level 1 execution input → Level 1 output → validation → certification → hierarchy materialization → UI → reverse lineage`
+## Current implementation change
 
-## Current Level 1 state
+The former Level 3 Temporal and Level 3 Analysis routes are no longer the consumer-facing Level 3 model. The Level 3 route now executes the governed recursive capability graph through the existing recursive planner/executor and binds the run to the exact certified Level 2 parent execution/output hash.
 
-Authoritative user hierarchy remains empty:
+The user-facing hierarchy now requests:
 
-- `iris_user_intelligence_nodes = 0`
-- `iris_user_intelligence_edges = 0`
-- `iris_user_intelligence_compositions = 0`
-- `iris_certifications = 0`
-- published certified intelligence = 0
+`GET /iris/level3`
 
-Two stalled Level-1 runs were explicitly superseded by the batching fix. They each contained 2,499 evidence records but produced zero outputs/nodes and are `FAILED / NOT_CERTIFIED`.
+and, when no certified Level 3 run exists:
 
-The latest backend deployment containing the Level-1 node batching fix is live, but **Level 1 is not certified**.
+`POST /iris/level3/run`
 
-## Current source Item boundary
+The UI presents the recursive graph as part of the same hierarchy rather than as a separate intelligence side.
 
-There are 10 Items for the user. Nine are disconnected/ITEM_REMOVED and were created repeatedly during Sep 11–13 testing/reconnection. The newest active Item is the current certification candidate. No deletion or source mutation is authorized merely for cleanup.
+## Required certification gate
+
+1. Verify the live backend deployment contains the Level 3 recursive implementation.
+2. Verify the live frontend deployment contains the unified Level 3 hierarchy surface.
+3. Verify the Level 2 parent run/execution/certification/output hash are exact.
+4. Execute Level 3 against the current governed evidence boundary.
+5. Verify all declared dependencies are read and semantic dependency proofs pass.
+6. Verify execution output hash equals the persisted execution/output binding.
+7. Verify validation and certification records pass.
+8. Verify `HIERARCHY_PUBLISHED`.
+9. Verify Level 3 nodes/edges/compositions/lineage were materialized only after certification.
+10. Verify the live authenticated UI displays the derived hierarchy rather than raw execution content.
+11. Reverse-lineage a displayed Level 3 factual result through the hierarchy node → execution output → upstream dependencies → governed evidence.
+12. User verifies the actual screen.
+13. Stop before the next recursive expansion.
 
 ## Non-negotiables
 
@@ -56,33 +73,9 @@ There are 10 Items for the user. Nine are disconnected/ITEM_REMOVED and were cre
 - No fabricated financial facts.
 - No placeholder financial values.
 - No unknown-as-zero conversion.
-- Sandbox observations are evidence only and must remain explicitly Sandbox evidence.
+- Sandbox observations remain explicitly Sandbox evidence.
 - One complete IRIS hierarchy; never describe two sides.
 - Capability metadata is not user intelligence.
-- Authoritative hierarchy writes are post-certification only.
 - Persistence is not proof.
 - Deployment is not certification.
-- Do not advance levels until the current level is actually verified on screen.
-
-## Documentation authority
-
-Architecture authority: Master Build Prompt.
-Capability execution order: Iris Capability Roadmap.
-Backend reality check: current backend audit/current-state documents.
-Runtime truth: live GitHub main + Render + Supabase.
-Continuity: this handoff and the latest verified Library records.
-
-## Next exact actions
-
-1. Audit the resync-to-evidence registration code path.
-2. Identify why a successful resync receipt/observation does not create/refresh the required governed evidence boundary.
-3. Make the smallest correct change only after inspecting the exact current implementation/schema.
-4. Deploy and audit after the change.
-5. Trigger resync on the current active Item — **do not reconnect** for the verification test.
-6. Confirm new/updated provider evidence is registered into the Level-1 manifest when applicable.
-7. Run Level 1.
-8. Verify execution/output/validation/certification records.
-9. Verify post-certification hierarchy materialization.
-10. Reverse-lineage a displayed field all the way back to its exact Supabase source observation/provider receipt.
-11. User verifies the actual Level-1 screen.
-12. Stop. Do not start Level 2.
+- Do not advance until the current Level 3 gate is actually verified on screen.
