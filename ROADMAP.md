@@ -10,22 +10,48 @@ There are no architectural two sides. Financial Life is not one side and Intelli
 
 # 0. Current authoritative state — 2026-09-13
 
-**Capability infrastructure exists. Authoritative persisted IRIS hierarchy intelligence does not yet exist.**
+**Level 1 is certified. Level 2 is certified and the first authoritative user hierarchy is published.**
 
-The clean current persisted hierarchy state is:
+## Level 1 certification
 
-```text
-iris_user_intelligence_nodes          = 0
-iris_user_intelligence_edges         = 0
-iris_user_intelligence_compositions  = 0
-hierarchy-intelligence lineage       = 0
-iris_certifications                  = 0
-published certified intelligence     = 0
-```
+- 192 authoritative evidence records
+- 193 execution-lineage records
+- 13/13 validation checks PASS
+- 0 financial intelligence nodes, edges or compositions at Level 1
+- publication: `NOT_STARTED`
+- certification hash: `6b23139e37dd390be34f3895020e0bb3db0c08eed143b6aa44b27006116125a1`
 
-This zero state is intentional after removal of pre-certification hierarchy artifacts. It must not be described as partial persisted intelligence. It is the truthful pre-first-certification state.
+## Level 2 certification
 
-The architecture is implemented; the first legitimate runtime-generated hierarchy has not yet been certified.
+- run: `5a0af473-f2a9-43a4-bbe4-7b0b04aa5df3`
+- execution: `9586ea77-9d14-4c1f-8da6-86b99ab77c3c`
+- status: `CERTIFIED`
+- execution state: `EXECUTED`
+- validation: `PASS`
+- certification: `CERTIFIED`
+- publication: `HIERARCHY_PUBLISHED`
+- nodes: `10`
+- edges: `4`
+- compositions: `10`
+- execution lineage: `340`
+- Level 2 evidence boundary: exact certified Level 1 boundary
+
+The Level 2 implementation currently contains explicit cross-domain intelligence for Transactions × Balance and Transactions × Liabilities. It does **not** claim every theoretical domain combination is implemented.
+
+## Transaction field-lineage proof
+
+The current certified Level 2 transaction output is independently reconcilable to its selected source records:
+
+- 48 posted transactions selected by the certified evidence gate
+- 6 negative records → IRIS inflow `1512.66`
+- 42 positive records → IRIS outflow `33448.38`
+- net cash flow `-31935.72`
+- 48 lineage contributions for posted transaction count
+- 48 lineage contributions for net cash flow
+- 6 lineage contributions for inflow
+- 42 lineage contributions for outflow
+
+The durable database trigger now materializes this field-level lineage for future Level 2 executions as well. The corresponding migration is tracked in GitHub as `088_level2_transaction_field_lineage.sql`.
 
 ---
 
@@ -36,9 +62,11 @@ REAL SUPABASE / PLAID EVIDENCE
         ↓
 EVIDENCE BOUNDARY
         ↓
-CAPABILITY PLANNING
+LEVEL 1 GOVERNANCE / VALIDATION
         ↓
-RECURSIVE COMPUTATION
+LEVEL 2 AUTHORITATIVE DOMAINS
+        ↓
+APPLICABLE RECURSIVE INTELLIGENCE
         ↓
 SEMANTIC DEPENDENCY VALIDATION
         ↓
@@ -52,16 +80,12 @@ AUTHORITATIVE HIERARCHY MATERIALIZATION
         ↓
 NODES / EDGES / COMPOSITIONS / LINEAGE
         ↓
-CERTIFIED INTELLIGENCE
-        ↓
 UNIFIED IRIS SURFACES
 ```
 
 This is a graph, not a finite tree. It supports multiple parents, cross-domain relationships, temporal dependencies and recursive ancestry. There is no artificial semantic depth ceiling.
 
-**Hard boundary:** authoritative hierarchy writes are post-certification only.
-
-The recursive executor must not persist hierarchy nodes. Arbitrary recursive composition materialization must independently require an exact certified run. Database certification guards enforce the same boundary independently of application code.
+**Hard boundary:** authoritative user hierarchy writes are permitted only through the certified execution/publication lifecycle enforced by the database and runtime.
 
 ---
 
@@ -150,74 +174,61 @@ Actual Plaid Sandbox records are allowed only when genuinely returned by Sandbox
 
 # 6. Build and proof state
 
-## Completed architectural corrections
+## Completed and certified
 
 - [x] One unified hierarchy is the canonical architecture.
 - [x] Two-side Financial Life / Intelligence framing is removed.
 - [x] User financial content is permitted on any IRIS surface when governed evidence/derivation supports it.
 - [x] Evidence and intelligence remain one hierarchy.
 - [x] Pre-certification hierarchy artifacts were purged.
-- [x] Database certification guards enforce post-certification hierarchy writes.
-- [x] Recursive capability execution no longer receives a hierarchy persistence callback.
+- [x] Database certification/publication guards enforce the authoritative write boundary.
+- [x] Recursive capability execution does not receive a hierarchy persistence callback.
 - [x] Arbitrary recursive composition persistence independently checks exact certification.
 - [x] Semantic dependency validation remains enforced.
-- [x] The recursive-executor regression fixture was corrected without weakening semantic validation.
 - [x] Products and Reports remain independent concepts.
 - [x] Fake-data prohibition is explicit and permanent.
+- [x] Level 1 evidence boundary and lineage are certified.
+- [x] Level 2 domain intelligence execution is certified.
+- [x] Level 2 hierarchy nodes, edges and compositions are published.
+- [x] Level 2 transaction field lineage is persisted and reconciled.
+- [x] Level 2 transaction lineage persistence is hardened against public/anonymous/authenticated direct execution.
 
-## Not yet certified
+## Remaining certification work
 
-- [ ] Backend corrected build/deployment is live and verified.
-- [ ] Real authenticated recursive run completes against governed Supabase/Plaid evidence.
-- [ ] `iris_execution_outputs` contains a valid run-bound output from that corrected runtime.
-- [ ] `iris_validation_results` contains passing validation for that run.
-- [ ] `iris_certifications` contains the exact certified run.
-- [ ] First post-certification hierarchy nodes are materialized.
-- [ ] First post-certification hierarchy edges are materialized.
-- [ ] First post-certification recursive compositions are materialized where applicable.
-- [ ] Exact hierarchy lineage is reconciled forward and backward.
-- [ ] Unified Intelligence UI consumes the authoritative persisted hierarchy.
-- [ ] Every registered IRIS surface consumes the same authoritative hierarchy where supported.
-- [ ] Every user-facing control is authenticated-runtime verified.
-- [ ] Full end-to-end certification is complete.
-
----
-
-# 7. Current backend blocker
-
-The backend build is test-gated. The previous certification-boundary failure was a regression fixture activating real semantic contracts (`analysis`, `behavioral`, etc.) while a structural mock dispatcher did not consume those semantic paths.
-
-The fixture correction is committed. The backend deployment triggered by the latest correction must pass the full test suite before it can become the live runtime.
-
-This blocker must be fixed through the test fixture or underlying implementation contract. **Do not disable tests, bypass semantic validation, or weaken certification to obtain a green build.**
+- [ ] Verify the live authenticated UI displays the published hierarchy without raw-content/black-screen failure.
+- [ ] Verify every displayed factual value resolves through the published hierarchy and exact lineage.
+- [ ] Verify reverse traversal from each user-facing factual result to its persisted intelligence node, execution output and governed source evidence.
+- [ ] Continue to the next hierarchy level only after the current level passes live-screen and reverse-lineage certification.
+- [ ] Expand recursive intelligence only when real governed evidence, applicable operators, dependencies and validation justify it.
+- [ ] Complete unified Reports, Questions, Explanations, Education, Scenarios, Decisions, Action and Outcomes traversal where supported.
+- [ ] Final authenticated browser, deployment, provider, Supabase and no-fabrication certification.
 
 ---
 
-# 8. Required first certified hierarchy run
+# 7. Required proof for every hierarchy level
 
-The first legitimate hierarchy generation must prove, with real runtime evidence:
+For each level, IRIS must prove:
 
 1. Correct authenticated user boundary.
-2. Correct selected provider Item/evidence scope.
-3. Exact run evidence manifest.
-4. Recursive capability planning.
+2. Correct governed evidence scope.
+3. Exact evidence boundary and manifest.
+4. Applicable intelligence/operator selection.
 5. Semantic dependency consumption.
 6. Correct execution output persistence.
-7. Validation persistence.
+7. Passing validation persistence.
 8. Certification persistence.
-9. Post-certification node materialization.
-10. Post-certification edge materialization.
-11. Post-certification composition materialization where findings qualify.
-12. Exact node/edge/composition lineage.
-13. Reverse traversal from hierarchy result to evidence.
-14. UI display of the same persisted certified hierarchy.
-15. No fabricated data at any point.
+9. Correct post-certification materialization.
+10. Exact node/edge/composition lineage.
+11. Forward traversal from evidence to user-facing content.
+12. Reverse traversal from user-facing content back to evidence.
+13. No fabricated financial data.
+14. Live authenticated UI presentation of the same persisted state.
 
-Only after this proof may the system claim that IRIS hierarchy intelligence is operational.
+A level is not certified merely because its code compiles, its endpoint responds, rows exist, or a screen renders.
 
 ---
 
-# 9. Unified UI/product roadmap
+# 8. Unified UI/product roadmap
 
 The consumer journey is one traversal system:
 
@@ -233,7 +244,7 @@ This is not an architectural division.
 - [ ] Verify loading, empty, insufficient-evidence, unavailable, deferred and error states.
 - [ ] Keep Products and Reports counts independently sourced.
 - [ ] Remove any remaining stale two-side terminology.
-- [ ] Reconcile competing intelligence UI models into one authoritative hierarchy model.
+- [x] Reconcile competing intelligence UI models into one authoritative hierarchy model.
 - [ ] Verify mobile interaction.
 - [ ] Verify desktop interaction.
 
@@ -247,7 +258,7 @@ This is not an architectural division.
 
 ---
 
-# 10. Complete certification chain
+# 9. Complete certification chain
 
 ```text
 Architecture Defined
@@ -266,54 +277,54 @@ Architecture Defined
 → End-to-End Certified
 ```
 
-A definition, file, schema, route, endpoint, component, successful compilation, deployment, persisted row or visible screen is not certification by itself.
+Definitions, files, schemas, routes, endpoints, components, successful compilation, deployment, persisted rows and visible screens are evidence for certification gates, not substitutes for the gates themselves.
 
 ---
 
-# 11. Dependency order from here
+# 10. Dependency order from here
 
-### Gate A — Runtime build
+### Gate A — Current published hierarchy verification
 
-1. Pass complete backend tests.
-2. Deploy corrected backend.
-3. Verify live health/version.
+1. Verify live backend version and health.
+2. Verify live frontend deployment.
+3. Verify authenticated Level 2 fetch.
+4. Verify the published hierarchy renders as hierarchy intelligence rather than raw source content.
 
-### Gate B — Real intelligence execution
+### Gate B — Reverse lineage
 
-4. Execute against the actual governed Supabase/Plaid evidence boundary.
-5. Reconcile execution input/evidence manifest.
-6. Prove semantic dependency consumption.
-7. Prove output persistence.
-8. Prove validation persistence.
-9. Prove certification persistence.
+5. Select every user-facing factual Level 2 result.
+6. Trace result → hierarchy node/composition → execution output → execution lineage → Level 1 evidence → exact Supabase source observation.
+7. Recompute independently and compare.
 
-### Gate C — First hierarchy
+### Gate C — Next hierarchy level
 
-10. Materialize hierarchy only after certification.
-11. Reconcile nodes, edges, compositions and lineage.
-12. Verify database guards remain effective.
+8. Only after Gate B passes, execute the next applicable recursive intelligence level.
+9. Validate dependencies.
+10. Certify.
+11. Materialize.
+12. Reconcile forward and backward.
+13. Verify the live screen.
 
 ### Gate D — Unified product
 
-13. Make Intelligence UI consume the authoritative hierarchy.
-14. Connect Reports, Questions, Explanations, Education, Scenarios, Decisions, Action and Outcomes to the same hierarchy where supported.
-15. Verify forward and reverse traversal.
-16. Verify every route and control.
+14. Connect Reports, Questions, Explanations, Education, Scenarios, Decisions, Action and Outcomes to the same authoritative hierarchy where supported.
+15. Verify every route and control.
+16. Verify mobile and desktop interaction.
 
-### Gate E — End-to-end certification
+### Gate E — Final end-to-end certification
 
 17. Authenticated browser traversal.
 18. Backend/runtime reconciliation.
 19. Supabase reconciliation.
 20. Provider evidence reconciliation.
 21. Reverse lineage verification.
-22. Mobile and desktop verification.
+22. Publication-state verification.
 23. Final no-fabrication audit.
-24. Only then declare certification.
+24. Only then declare complete certification.
 
 ---
 
-# 12. Permanent rules
+# 11. Permanent rules
 
 1. One IRIS system.
 2. One complete hierarchy.
@@ -331,7 +342,7 @@ A definition, file, schema, route, endpoint, component, successful compilation, 
 14. Forward and reverse traversal are mandatory.
 15. Provider Product and Report Product counts remain independent.
 16. Read-only money movement boundaries remain enforced.
-17. Authoritative hierarchy writes occur only after certification.
-18. Capability infrastructure is not persisted hierarchy intelligence.
-19. Zero hierarchy rows remain the truthful state until the first real certified materialization.
+17. Authoritative hierarchy writes remain certification/publication gated.
+18. Capability infrastructure is not itself user-specific hierarchy intelligence.
+19. Documentation must remain synchronized with live runtime/database proof.
 20. Documentation never substitutes for runtime proof.
