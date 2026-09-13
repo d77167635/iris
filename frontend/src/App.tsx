@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./api/supabase";
 import { Auth } from "./components/Auth";
-import { IrisFinancialLifeJourney } from "./components/IrisFinancialLifeJourney";
+import { IrisFinancialLifeHome } from "./components/IrisFinancialLifeHome";
 import { IrisCommandSurface } from "./components/IrisCommandSurface";
 import { IrisIntelligenceSurface } from "./components/IrisIntelligenceSurface";
 import { IrisCatalog } from "./components/IrisCatalog";
@@ -99,7 +99,7 @@ export default function App() {
   else if (irisPage === "iris/outcomes") content = <IrisActionOutcome mode="outcomes" go={navigate} />;
   else if (isIntelligencePage) content = <IrisIntelligenceSurface page={irisPage} go={navigate} />;
   else if (isScenarioPage) content = <IrisScenarioSurface go={navigate} />;
-  else if (irisPage === "iris") content = <IrisFinancialLifeJourney go={navigate} />;
+  else if (irisPage === "iris") content = <IrisFinancialLifeHome go={navigate} />;
   else if (isSpecialPage) content = <IrisCommandSurface page={irisPage} go={navigate} />;
   else if (isRegisteredWorkspace) content = <IrisWorkspaceSurface page={irisPage} go={navigate} />;
   else content = <IrisWorkspaceSurface page={irisPage} go={navigate} />;
