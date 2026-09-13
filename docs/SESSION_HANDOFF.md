@@ -24,15 +24,17 @@ Any supported IRIS surface may expose supported user-specific evidence and/or de
 
 The specifically reconciled Plaid Sandbox → Supabase Item/data path is verified for the tested path. The claim does not automatically certify the broader current multi-Item population.
 
-The current full-intelligence execution path requires one independently governed canonical Item and does not silently aggregate multiple Items. Statements remains architecturally authoritative but is deferred from the current Sandbox evidence boundary until real banking.
+The current full-intelligence execution path uses the independently governed canonical Item selected by the evidence-scope resolver when available. It does not silently combine Items when a canonical Item is available. Statements remains architecturally authoritative but is deferred from the current Sandbox evidence boundary until real banking.
 
 ## Runtime defect found and fixed
 
-The prior execution boundary persisted only generic provider product observations into `iris_run_evidence`, while run-bound transaction, balance and liability consumers require the exact typed raw observations they consume.
+The live database proved that inserting parent Plaid product observations into `iris_run_evidence` invokes the authoritative `trg_expand_iris_run_evidence_raw_financial` trigger, which creates typed transaction/balance/liability evidence.
 
-The current implementation now persists exact current observed product, transaction, balance and liability evidence for the selected canonical Item, with typed evidence records, hashes, timestamps and exact Item/account scope. It also refuses silent user-level Item aggregation and preserves precise execution failure state.
+The full-intelligence executor previously kept only the parent insert IDs and original evidence hash. The independent capability executor already re-read the expanded evidence set and bound that complete manifest.
 
-The backend and frontend deployments for this workstream reached `live` status.
+The current full-intelligence implementation now follows that trigger-aware pattern: insert governed parent observations, re-read complete run evidence, compute the complete evidence manifest/hash, update the run binding, and pass the complete evidence IDs/hash into recursive execution and lineage. Structured object errors are also preserved instead of becoming `[object Object]`.
+
+The backend and frontend deployments for the implementation workstream reached `live` status.
 
 **Fresh authenticated execution is still required to prove that the corrected runtime produces persisted intelligence output and certification.**
 
@@ -48,7 +50,7 @@ Authenticated route-by-route and control-by-control verification is still requir
 
 ## Current observed Supabase certification state
 
-The pre-fix live snapshot contained:
+The audited live snapshot contained:
 
 - `iris_runs`: 20
 - `iris_execution_records`: 20
@@ -61,20 +63,23 @@ The pre-fix live snapshot contained:
 - report dependencies: 267
 - semantic dependency proofs: 19
 
+The previously failed run's `iris_run_evidence` contained 67 parent provider observations plus 48 transaction, 14 balance and 3 liability evidence records, proving the database expansion trigger is active.
+
 These are observations, not completion claims.
 
 ## Required next verification sequence
 
-1. Trigger/observe a fresh authenticated full-intelligence run against the current canonical Item.
-2. Verify `iris_run_evidence` contains exact typed transaction/balance/liability evidence for that Item.
-3. Verify every capability consumes only its declared upstream dependencies.
-4. Verify recursive graph nodes and lineage persist.
-5. Verify execution output persists.
-6. Verify certification gate behavior.
-7. Verify report publication state separately from report definitions.
-8. Traverse the UI route-by-route and control-by-control.
-9. Verify forward and reverse lineage.
-10. Update README/ROADMAP/MASTER_STATE/session continuity only from verified results.
+1. Verify the current backend deployment contains the trigger-aware full-intelligence evidence-manifest fix.
+2. Trigger/observe a fresh authenticated full-intelligence run against the current canonical Item.
+3. Verify the fresh run's evidence manifest includes all expanded evidence records and a matching manifest hash.
+4. Verify every capability consumes only its declared upstream dependencies.
+5. Verify recursive graph nodes and lineage persist.
+6. Verify execution output persists.
+7. Verify certification gate behavior.
+8. Verify report publication state separately from report definitions.
+9. Traverse the UI route-by-route and control-by-control.
+10. Verify forward and reverse lineage.
+11. Update README/ROADMAP/MASTER_STATE/session continuity only from verified results.
 
 ## Anti-fabrication rule
 
