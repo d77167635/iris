@@ -7,7 +7,7 @@
 - Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Latest implementation commit in this workstream: `49586df147d8a97cf089d889e39f28d89aa8c0dd`
+- Latest implementation commit in this workstream: `2f4a503e935f1e49833dca2d82cdc5e2d80866a0`
 - Connected Supabase project: `uhcrdehjwaghqvydaqnn`
 - Current Render workspace: `tea-dai0jth42hec73araong`
 - Current scope: read-only intelligence; no money movement.
@@ -30,13 +30,13 @@ Forward and reverse traversal are first-class requirements.
 
 The specifically reconciled Plaid Sandbox → Supabase Item/data path is verified for the tested path. That result does not automatically certify every current Item or every future synchronization run.
 
-The live user currently has multiple active Items. The current full-intelligence execution path therefore requires one independently governed canonical Item. It does not silently aggregate Items across the user.
+The live user currently has multiple active Items. The current full-intelligence execution path therefore uses the independently governed canonical Item selected by the evidence-scope resolver; it does not silently combine Items when a canonical Item is available.
 
 The latest current Item with seven observed provider domains has 14 accounts, 48 current observed transactions, 14 current observed balances and 3 current observed liabilities. Statements remains architecturally authoritative but deferred from the Sandbox evidence boundary until real banking.
 
 ## Current intelligence runtime state
 
-The live database snapshot observed before this work contained:
+The live database snapshot observed during the audit contained:
 
 - `iris_runs`: 20
 - `iris_execution_records`: 20
@@ -54,29 +54,32 @@ The live database snapshot observed before this work contained:
 
 Recent failed runs included `RECURSIVE_CAPABILITY_EXECUTION_FAILED` and `DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED`.
 
-### Verified defect found and fixed
+### Exact runtime defect found
 
-The recursive execution boundary was persisting only `provider_raw_observation` rows from Plaid product observations into `iris_run_evidence`.
+The live Supabase audit proved that `iris_run_evidence` has an authoritative database trigger named `trg_expand_iris_run_evidence_raw_financial` that expands inserted Plaid product-observation evidence into typed raw financial evidence.
 
-Downstream run-bound consumers require typed run evidence for the actual provider observations they consume:
+The current full-intelligence executor inserted the parent `provider_raw_observation` rows but then used only the IDs returned by that initial insert for its execution manifest, lineage, and recursive executor context. It did **not** re-read the trigger-expanded evidence set or recompute the evidence-manifest hash from that complete set.
 
-- `provider_raw_transaction`
-- `provider_raw_balance`
-- `provider_raw_liability`
+The independent capability executor already contained the correct pattern: insert parent product observations, re-read complete `iris_run_evidence`, build the complete manifest, hash that manifest, and bind the complete evidence set to execution.
 
-That mismatch meant the execution run could be correctly scoped to an Item while its downstream operators could not read the exact raw transaction/balance/liability evidence bound to that run.
+This mismatch is the actual verified full-intelligence evidence-binding defect.
 
-The current implementation now:
+### Current fix
 
-1. resolves one canonical Item;
-2. refuses silent user-level Item aggregation when no canonical Item exists;
-3. resolves the selected Item's exact account IDs;
-4. reads current observed raw product, transaction, balance and liability observations for those exact accounts/Item;
-5. persists typed `iris_run_evidence` rows with hashes and effective/acquired timestamps;
-6. binds the complete evidence set to the execution manifest; and
-7. preserves precise execution failure state rather than overwriting an execution failure as a generic setup failure.
+The current full-intelligence implementation now:
 
-This is a code correction, **not yet an intelligence certification**. A fresh authenticated execution must prove the new boundary.
+1. inserts only the governed parent Plaid product observations;
+2. allows the authoritative database trigger to expand exact transaction/balance/liability evidence;
+3. re-reads the complete run-evidence set after expansion;
+4. binds all expanded evidence record IDs into the execution manifest;
+5. computes `evidence_manifest_hash` from the complete evidence manifest;
+6. updates the run's evidence manifest binding;
+7. passes the complete evidence IDs and manifest hash into recursive execution, lineage and arbitrary recursive composition; and
+8. serializes structured errors instead of reducing object errors to `[object Object]`.
+
+The current live run evidence for the previously failed run already demonstrates the trigger behavior: 14 `provider_raw_balance`, 3 `provider_raw_liability`, 48 `provider_raw_transaction`, and 67 `provider_raw_observation` records were present for that run.
+
+This code correction is **not yet an intelligence certification**. A fresh authenticated execution must prove the corrected full-intelligence path.
 
 ## Current UI state
 
@@ -99,7 +102,7 @@ Current authoritative services:
 - `iris-backend-u60o.onrender.com` — Web Service, branch `main`.
 - `iris-frontend-cuy3.onrender.com` — Static Site, branch `main`.
 
-The latest Render deployments for this workstream reached `live` status. Deployment success is not itself end-to-end certification.
+The latest Render deployments for the current workstream reached `live` status. Deployment success is not itself end-to-end certification.
 
 An older Docker service remains in the workspace and must not be treated as authoritative unless independently verified.
 
@@ -113,7 +116,7 @@ An older Docker service remains in the workspace and must not be treated as auth
 - Stale two-side/product-side terminology in the audited continuity documents was removed or superseded.
 - Plaid Sandbox → Supabase tested mapping path remains verified within its exact tested boundary.
 - Current canonical Item candidates were reconciled against current accounts/transactions/balances/liabilities/provider domains.
-- Recursive execution run-evidence defect identified from source-to-runtime dependency inspection and corrected.
+- The actual full-intelligence evidence-binding defect was identified by reconciling source code with the live Supabase trigger and live run evidence.
 - Frontend route-specific workspace behavior corrected.
 - Navigation cognition/style defect corrected.
 - Frontend deployment passed.
@@ -123,7 +126,7 @@ An older Docker service remains in the workspace and must not be treated as auth
 
 ### Not yet certified
 
-- Fresh authenticated recursive full-intelligence execution after the run-evidence fix.
+- Fresh authenticated recursive full-intelligence execution after the evidence-binding fix.
 - Certified intelligence output materialization.
 - Full current multi-Item provider reconciliation as a user-level aggregate.
 - Complete route-by-route authenticated traversal.
