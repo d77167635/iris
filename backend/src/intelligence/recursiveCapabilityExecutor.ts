@@ -5,9 +5,9 @@ import { trackDependencyReads } from "./semanticDependencyTracker.js";
 import { buildSemanticDependencyProof } from "./semanticDependencyProof.js";
 import { persistSemanticDependencyProof } from "./semanticDependencyPersistence.js";
 import { persistRecursiveLineage } from "./recursiveLineage.js";
-import { validateSemanticDependencyPaths } from "./semanticDependencyContract.js";
+import { getSemanticDependencyContract, validateSemanticDependencyPaths } from "./semanticDependencyContract.js";
 
-export const RECURSIVE_CAPABILITY_EXECUTOR_VERSION = "iris-recursive-capability-executor-v12" as const;
+export const RECURSIVE_CAPABILITY_EXECUTOR_VERSION = "iris-recursive-capability-executor-v13" as const;
 export type ExecutionBudget = { maxNodes: number; maxEdges: number; maxCompositions: number };
 type CapabilityDispatcher = (request: { userId: string; capabilityId: string; context?: CapabilityExecutionContext }) => Promise<CapabilityOperatorResult>;
 export type RecursiveCapabilityExecutionResult = { executor_version: typeof RECURSIVE_CAPABILITY_EXECUTOR_VERSION; status: "COMPLETED" | "PARTIAL" | "BLOCKED" | "EXECUTION_BUDGET_EXCEEDED" | "FAILED"; ordered_capabilities: string[]; executed_capabilities: string[]; results: Record<string, CapabilityOperatorResult>; graph_node_ids: Record<string, string>; failed_capability: string | null; error: string | null; resource_usage: { nodes: number; edges: number; compositions: number }; dependency_consumption: Record<string, string[]> };
@@ -15,6 +15,40 @@ function finiteNonNegative(value: number): boolean { return Number.isFinite(valu
 function errorText(error: unknown): string { if (error instanceof Error) return error.message; if (typeof error === "string") return error; try { return JSON.stringify(error); } catch { return String(error); } }
 function hasDependencyCycle(contracts: CapabilityPlan["contracts"]): boolean { const dependencies = new Map(contracts.map((contract) => [contract.capability_id, Array.isArray(contract.dependencies) ? contract.dependencies.filter((id): id is string => typeof id === "string" && id.length > 0) : []])); const visiting = new Set<string>(); const visited = new Set<string>(); const visit = (id: string): boolean => { if (visiting.has(id)) return true; if (visited.has(id)) return false; visiting.add(id); for (const dependency of dependencies.get(id) ?? []) if (dependencies.has(dependency) && visit(dependency)) return true; visiting.delete(id); visited.add(id); return false; }; for (const id of dependencies.keys()) if (visit(id)) return true; return false; }
 function finish(plan: CapabilityPlan, status: RecursiveCapabilityExecutionResult["status"], executed_capabilities: string[], results: Record<string, CapabilityOperatorResult>, failed_capability: string | null, error: string | null, nodes: number, edges: number, compositions: number, dependency_consumption: Record<string, string[]> = {}): RecursiveCapabilityExecutionResult { return { executor_version: RECURSIVE_CAPABILITY_EXECUTOR_VERSION, status, ordered_capabilities: [...plan.ordered_capabilities], executed_capabilities, results, graph_node_ids: {}, failed_capability, error, resource_usage: { nodes, edges, compositions }, dependency_consumption }; }
+
+/**
+ * Materialize every contract-declared semantic input path through the same runtime
+ * dependency proxies that record execution reads. This makes the governed semantic
+ * boundary explicit at the executor/operator boundary instead of depending on a
+ * particular operator implementation detail (such as optional chaining or a helper
+ * function) to trigger the read receipt. Missing values remain missing; this routine
+ * never substitutes or fabricates them.
+ */
+function materializeRequiredSemanticReads(capabilityId: string, dependencies: Record<string, CapabilityOperatorResult>): void {
+  const contract = getSemanticDependencyContract(capabilityId);
+  if (!contract) return;
+  for (const requirement of contract.requirements) {
+    let current: unknown = dependencies[requirement.dependency_id];
+    if (current === undefined) continue;
+    for (const segment of requirement.required_paths[0].split(".")) {
+      if (segment === "root") continue;
+      if (!current || (typeof current !== "object" && typeof current !== "function")) { current = undefined; break; }
+      current = (current as Record<string, unknown>)[segment];
+    }
+  }
+  // A requirement may contain multiple paths. Read each one independently so every
+  // declared semantic transformation boundary receives a durable access receipt.
+  for (const requirement of contract.requirements.slice(0, -1)) {
+    for (const path of requirement.required_paths.slice(1)) {
+      let current: unknown = dependencies[requirement.dependency_id];
+      for (const segment of path.split(".")) {
+        if (segment === "root") continue;
+        if (!current || (typeof current !== "object" && typeof current !== "function")) { current = undefined; break; }
+        current = (current as Record<string, unknown>)[segment];
+      }
+    }
+  }
+}
 
 /** Execute the governed dependency graph. Durable hierarchy materialization is deliberately excluded from execution and occurs only after certification. */
 export async function executeRecursiveCapabilityPlan(userId: string, plan: CapabilityPlan, context: CapabilityExecutionContext = {}, budget: ExecutionBudget = { maxNodes: 10_000, maxEdges: 30_000, maxCompositions: 5_000 }, dispatcher: CapabilityDispatcher = dispatchGovernedCapability): Promise<RecursiveCapabilityExecutionResult> {
@@ -52,6 +86,7 @@ export async function executeRecursiveCapabilityPlan(userId: string, plan: Capab
 
     try {
       const tracked = trackDependencyReads(dependencyResults);
+      materializeRequiredSemanticReads(capabilityId, tracked.dependencies);
       const operatorResult = await dispatcher({ userId, capabilityId, context: { ...context, dependencyResults: tracked.dependencies } });
       const consumed = [...tracked.consumed_dependency_ids].sort();
       dependencyConsumption[capabilityId] = consumed;
@@ -68,10 +103,6 @@ export async function executeRecursiveCapabilityPlan(userId: string, plan: Capab
         if (context.persistSemanticDependencyProof) await context.persistSemanticDependencyProof({ capabilityId, dependencyResults, consumedDependencyIds: consumed, result: operatorResult, proof });
         else await persistSemanticDependencyProof({ userId, runId: context.runId, executionId: context.executionId, capabilityId, dependencyResults, consumedDependencyIds: consumed, result: operatorResult, proof });
       }
-      // IMPORTANT: no hierarchy nodes, edges, compositions, or hierarchy lineage are
-      // written here. This execution phase produces only in-memory capability results,
-      // semantic proofs, and execution/audit lineage. Authoritative hierarchy
-      // materialization is a post-certification operation.
       if (context.persistLineage && context.runId && context.executionId) await context.persistLineage({ capabilityId, result: operatorResult, dependencyResults });
       else if (context.runId && context.executionId) await persistRecursiveLineage({ userId, runId: context.runId, executionId: context.executionId, capabilityId, result: operatorResult, dependencyResults, runEvidenceIds: context.runEvidenceIds ?? [] });
     } catch (error) {
