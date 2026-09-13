@@ -51,7 +51,7 @@ export function IrisExperienceShell({ page, go, children }: Props) {
       </nav>
     </section>
     <div className="ies-journey" aria-label="IRIS financial-life journey"><span className="ies-journey-label">IRIS · RECURSIVE JOURNEY</span>{journey.map((item, index) => <span key={item.page} className={page === item.page ? "active" : ""}><button type="button" onClick={() => go(item.page)} aria-current={page === item.page ? "step" : undefined}>{item.label}</button>{index < journey.length - 1 && <i aria-hidden="true">→</i>}</span>)}</div>
-    <IrisFinancialContext go={go} />
+    <IrisFinancialContext page={page} go={go} />
     <main className="ies-content">{children}</main>
     <IrisAssistant />
   </div>;
