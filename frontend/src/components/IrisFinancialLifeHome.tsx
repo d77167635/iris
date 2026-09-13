@@ -1,0 +1,25 @@
+import { useEffect, useState } from "react";
+import { api } from "../api/backend";
+
+type Props = { go?: (page: string) => void };
+const money = (v: unknown) => { if (v == null || v === "") return "—"; const n = Number(v); return Number.isFinite(n) ? `${n < 0 ? "−" : ""}$${Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"; };
+const stages = [["Life","iris"],["Evidence","iris/evidence"],["Understand","iris/reasoning"],["Intelligence","iris/intelligence"],["Reports","iris/catalog"],["Scenarios","iris/scenarios"],["Decisions","iris/decisions"],["Action","iris/action"],["Outcomes","iris/outcomes"]] as const;
+
+export function IrisFinancialLifeHome({ go }: Props) {
+  const [overview, setOverview] = useState<any>(null);
+  const [surface, setSurface] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => { let active = true; Promise.allSettled([api.getOverview(), api.getPlaidSurface()]).then(([o, s]) => { if (!active) return; if (o.status === "fulfilled") setOverview(o.value); if (s.status === "fulfilled") setSurface(s.value); }).finally(() => { if (active) setLoading(false); }); return () => { active = false; }; }, []);
+  const accounts = overview?.accounts ?? [];
+  const transactions = overview?.recent_transactions ?? [];
+  const liquidAccounts = accounts.filter((a: any) => a.type === "depository" && a.current_balance != null);
+  const creditAccounts = accounts.filter((a: any) => a.type === "credit" && a.current_balance != null);
+  const liquid = liquidAccounts.length ? liquidAccounts.reduce((s: number, a: any) => s + Number(a.current_balance), 0) : null;
+  const debt = creditAccounts.length ? creditAccounts.reduce((s: number, a: any) => s + Number(a.current_balance), 0) : null;
+  const observed = ["auth","transactions","balance","identity","assets","liabilities","investments"].filter(d => (surface?.products ?? []).some((p: any) => (p.key === d || p.product === d) && p.status === "observed")).length;
+  return <main className="iris4-screen"><header className="iris4-hero"><div><span>IRIS · FINANCIAL LIFE</span><h1>Your financial life is the starting point.</h1><p>This is the compact command view of the same unified hierarchy. The underlying provider evidence is real Supabase-backed state; deeper surfaces traverse it rather than duplicating it.</p></div><div className="iris4-status"><b>Accounts</b> {loading ? "…" : accounts.length || "—"}<i/><b>Activity</b> {loading ? "…" : transactions.length || "—"}<i/><b>Evidence domains</b> {loading ? "…" : `${observed}/7`}</div></header>
+    <section className="iris4-body"><section className="iris-surface"><span className="eyebrow">OBSERVED FINANCIAL LIFE</span><h2>Real provider-derived state</h2><div className="iris-metric-grid"><button className="iris-surface-card" type="button" onClick={() => go?.("iris/state")}><span>Liquid position</span><strong>{loading ? "…" : money(liquid)}</strong><small>{liquidAccounts.length ? `${liquidAccounts.length} observed depository account${liquidAccounts.length === 1 ? "" : "s"}` : "No observed depository balance"}</small></button><button className="iris-surface-card" type="button" onClick={() => go?.("iris/decisions")}><span>Revolving debt</span><strong>{loading ? "…" : money(debt)}</strong><small>{creditAccounts.length ? `${creditAccounts.length} observed credit account${creditAccounts.length === 1 ? "" : "s"}` : "No observed revolving-debt balance"}</small></button><button className="iris-surface-card" type="button" onClick={() => go?.("iris/state")}><span>Accounts</span><strong>{loading ? "…" : accounts.length || "—"}</strong><small>Persisted for the signed-in user</small></button><button className="iris-surface-card" type="button" onClick={() => go?.("iris/behavior")}><span>Recent transactions</span><strong>{loading ? "…" : transactions.length || "—"}</strong><small>Observed activity</small></button></div></section>
+      <section className="iris-surface"><span className="eyebrow">ONE COMPLETE HIERARCHY</span><h2>Move through the financial life, not away from it.</h2><div className="iris-metric-grid">{stages.map(([label, page]) => <button key={page} className="iris-surface-card" type="button" onClick={() => go?.(page)}><span>{label}</span><strong>Open →</strong><small>Same governed hierarchy</small></button>)}</div></section>
+      <section className="iris-surface"><span className="eyebrow">EVIDENCE BOUNDARY</span><h2>What is observed controls what Iris can say.</h2><p>Unknown remains unknown. Derived intelligence remains gated until the real runtime certification boundary is satisfied. No example, seeded, or fabricated financial values are introduced.</p><div className="iris-journey-actions"><button type="button" onClick={() => go?.("iris/evidence")}>Inspect evidence →</button><button type="button" onClick={() => go?.("iris/intelligence")}>Explore intelligence →</button><button type="button" onClick={() => go?.("iris/catalog")}>Open reports →</button></div></section>
+    </section></main>;
+}
