@@ -40,7 +40,43 @@ This is a graph, not a fixed pipeline or finite tree. A node may have multiple u
 
 Operational limits such as authorization, evidence availability, execution time, storage, latency, pagination, materialization budgets, device capability, and usefulness do not define a semantic ceiling.
 
-## 2. The UI and user journey are part of the hierarchy
+## 2. Current hierarchy write state — 2026-09-13
+
+Capability infrastructure exists. **Authoritative persisted hierarchy intelligence does not yet exist.**
+
+The legitimate current persisted hierarchy is:
+
+```text
+iris_user_intelligence_nodes          = 0
+iris_user_intelligence_edges         = 0
+iris_user_intelligence_compositions  = 0
+hierarchy-intelligence lineage       = 0
+iris_certifications                  = 0
+published certified intelligence     = 0
+```
+
+This is intentional after pre-certification hierarchy artifacts were removed. The first authoritative hierarchy must not appear until a real run completes execution, semantic validation, validation persistence and certification.
+
+The mandatory write boundary is:
+
+```text
+REAL SUPABASE / PLAID EVIDENCE
+→ EVIDENCE BOUNDARY
+→ CAPABILITY PLANNING
+→ RECURSIVE COMPUTATION
+→ SEMANTIC DEPENDENCY VALIDATION
+→ EXECUTION OUTPUT
+→ VALIDATION
+→ CERTIFICATION
+→ AUTHORITATIVE HIERARCHY MATERIALIZATION
+→ NODES / EDGES / COMPOSITIONS / LINEAGE
+→ CERTIFIED INTELLIGENCE
+→ UNIFIED IRIS SURFACES
+```
+
+Any authoritative hierarchy write before certification is a defect. Database certification guards independently enforce this boundary.
+
+## 3. The UI and user journey are part of the hierarchy
 
 The UI is not outside the architecture. The user journey is not a separate layer. Every screen, route, workspace, report, question, explanation, education surface, evidence view, modal, drawer, navigation destination, and interaction is a traversal or presentation point into the same hierarchy.
 
@@ -79,7 +115,7 @@ Exact factual reverse traversal requires exact persisted lineage. Conceptual exp
 
 The UI can progressively disclose arbitrarily deep supported relationships. There is no artificial UI or user-journey semantic depth ceiling.
 
-## 3. Financial-Life state, evidence, ontology, and intelligence are one graph
+## 4. Financial-Life state, evidence, ontology, and intelligence are one graph
 
 Financial-Life state includes the governed representation of the user's financial reality and, where supported, accounts, transactions, balances, identity, assets, liabilities, investments, statements, income, cash flow, spending, merchants, domains, categories, entities, recurring activity, obligations, debt, temporal state, changes, relationships, scenarios, decisions, outcomes, and learning.
 
@@ -115,7 +151,7 @@ unknown
 
 Unknown is never silently converted to zero.
 
-## 4. Eight authoritative domains
+## 5. Eight authoritative domains
 
 IRIS has eight authoritative financial-life evidence domains:
 
@@ -130,7 +166,7 @@ IRIS has eight authoritative financial-life evidence domains:
 
 The executable Sandbox boundary may be narrower than the architectural eight-domain hierarchy. A deferred domain must never be simulated or fabricated to make the hierarchy appear complete.
 
-## 5. Provider capability and evidence
+## 6. Provider capability and evidence
 
 Plaid is an external provider/source capability within the IRIS hierarchy. Provider observability is not a separate IRIS side.
 
@@ -156,7 +192,7 @@ The lifecycle states must never be collapsed. In particular:
 
 No provider observation may be invented from catalog metadata, capability availability, or expected product behavior.
 
-## 6. Relational ontology
+## 7. Relational ontology
 
 The relational ontology is the connective structure of the same hierarchy.
 
@@ -176,7 +212,7 @@ It defines and preserves:
 
 A relationship may connect observations, canonical state, intelligence, reports, decisions, outcomes, or other derived nodes. A conceptual relationship must never masquerade as factual user lineage.
 
-## 7. Recursive intelligence
+## 8. Recursive intelligence
 
 The intelligence hierarchy is not a finite capability list or fixed numbered tree.
 
@@ -200,7 +236,7 @@ Arbitrary derived-intelligence nodes must preserve:
 
 A finite capability registry does not define what IRIS can semantically represent.
 
-## 8. Reports, features, questions, explanations, education, and workspaces
+## 9. Reports, features, questions, explanations, education, and workspaces
 
 Reports, features, questions, explanations, education, and workspaces are presentation and traversal forms of the same intelligence graph.
 
@@ -220,7 +256,7 @@ No count is fabricated for visual symmetry.
 
 Education is contextual intelligence explanation. It may explain actual user-specific intelligence when that content is supported by governed evidence and qualified derivation. It is not a data-free architectural area.
 
-## 9. Report and intelligence publication
+## 10. Report and intelligence publication
 
 The governed publication path is:
 
@@ -254,7 +290,7 @@ Learn only from independently qualified outcomes
 
 Publication rules apply uniformly to every IRIS surface. No surface may bypass evidence, provenance, lineage, uncertainty, execution, authorization, or certification requirements merely because it is labeled a report, dashboard, education, question, workspace, or other UI destination.
 
-## 10. User control
+## 11. User control
 
 User controls may govern publication preferences for defined report products or other supported features. They must not be confused with provider authorization or intelligence semantics.
 
@@ -267,7 +303,7 @@ A user control:
 - must persist within its defined user boundary; and
 - must prevent content from being presented when the applicable publication state disables it.
 
-## 11. Anti-fabrication boundary
+## 12. Anti-fabrication boundary
 
 Fake AI data is strictly prohibited.
 
@@ -289,7 +325,7 @@ Actual provider Sandbox records may be used as Sandbox test evidence. They must 
 
 Technical unit-test mocks may isolate infrastructure behavior, but cannot become production financial evidence.
 
-## 12. Certification and proof
+## 13. Certification and proof
 
 A definition, schema, operator, endpoint, component, table, persisted row, successful build, rendered screen, or visible button is not certification by itself.
 
@@ -301,7 +337,7 @@ A later state never implies an earlier state is certified.
 
 Certification claims must be tied to an actual verified run and evidence boundary, not to documentation or expected behavior.
 
-## 13. Architectural non-negotiables
+## 14. Architectural non-negotiables
 
 1. **One IRIS system.**
 2. **One complete hierarchy.**
@@ -322,3 +358,6 @@ Certification claims must be tied to an actual verified run and evidence boundar
 17. **Products and Reports remain distinct concepts and independently sourced counts.**
 18. **Read-only money-movement boundaries remain enforced.**
 19. **No certification claim without actual proof.**
+20. **Authoritative hierarchy materialization is post-certification only.**
+21. **Capability infrastructure is not persisted hierarchy intelligence.**
+22. **Zero hierarchy rows remain truthful until the first real certified materialization.**
