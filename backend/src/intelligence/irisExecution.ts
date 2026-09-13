@@ -56,14 +56,7 @@ export async function executeIrisRun(request: RunRequest) {
   if (plan.status === "BLOCKED") throw new Error(`CAPABILITY_PLAN_BLOCKED: ${plan.limitations.join(" | ")}`);
 
   const initialManifest = { user_id: userId, request_id: requestId, surface, mode, requested_capabilities: requestedCapabilities, capability_plan: plan, evidence_scope: evidenceScope, as_of: asOf, planner_version: PLANNER_VERSION, orchestrator_version: ORCHESTRATOR_VERSION, certification_policy_version: CERTIFICATION_POLICY_VERSION };
-  const { data: run, error: runError } = await supabaseAdmin.from("iris_runs").insert({
-    request_id: requestId, user_id: userId, request_surface: surface, request_mode: mode, requested_capabilities: requestedCapabilities,
-    status: "PLANNED", as_of: asOf, evidence_boundary: asOf, evidence_version: "provider-observation-boundary-v4",
-    resource_budget: { max_execution_time_ms: 120000, max_graph_nodes: 10000, max_graph_edges: 30000, max_compositions: 5000 },
-    execution_policy: { evidence_gated: true, certify_only_after_validation: true, server_authoritative: true, capability_plan_status: plan.status, evidence_scope_kind: evidenceScope.kind, selected_item_id: selectedItemId, canonical_provider_domains: [...IRIS_CANONICAL_PROVIDER_DOMAINS], deferred_provider_domains: ["statements"], recursive_executor: EXECUTOR_OPERATOR_ID, recursive_executor_version: EXECUTOR_OPERATOR_VERSION },
-    planner_version: PLANNER_VERSION, orchestrator_version: ORCHESTRATOR_VERSION, certification_policy_version: CERTIFICATION_POLICY_VERSION,
-    financial_context_hash: hash({ user_id: userId, as_of: asOf, evidence_scope: evidenceScope }), evidence_manifest_hash: hash(initialManifest), started_at: asOf, updated_at: asOf,
-  }).select("*").single();
+  const { data: run, error: runError } = await supabaseAdmin.from("iris_runs").insert({ request_id: requestId, user_id: userId, request_surface: surface, request_mode: mode, requested_capabilities: requestedCapabilities, status: "PLANNED", as_of: asOf, evidence_boundary: asOf, evidence_version: "provider-observation-boundary-v4", resource_budget: { max_execution_time_ms: 120000, max_graph_nodes: 10000, max_graph_edges: 30000, max_compositions: 5000 }, execution_policy: { evidence_gated: true, certify_only_after_validation: true, server_authoritative: true, capability_plan_status: plan.status, evidence_scope_kind: evidenceScope.kind, selected_item_id: selectedItemId, canonical_provider_domains: [...IRIS_CANONICAL_PROVIDER_DOMAINS], deferred_provider_domains: ["statements"], recursive_executor: EXECUTOR_OPERATOR_ID, recursive_executor_version: EXECUTOR_OPERATOR_VERSION }, planner_version: PLANNER_VERSION, orchestrator_version: ORCHESTRATOR_VERSION, certification_policy_version: CERTIFICATION_POLICY_VERSION, financial_context_hash: hash({ user_id: userId, as_of: asOf, evidence_scope: evidenceScope }), evidence_manifest_hash: hash(initialManifest), started_at: asOf, updated_at: asOf }).select("*").single();
   if (runError || !run) throw new Error(`Unable to create Iris run: ${runError?.message || "unknown error"}`);
 
   const evidenceQuery = supabaseAdmin.from("plaid_raw_product_observations").select("id,item_id,product,raw_response,effective_at,acquired_at").eq("user_id", userId).eq("is_current", true).eq("evidence_state", "observed");
@@ -86,14 +79,12 @@ export async function executeIrisRun(request: RunRequest) {
   const { data: execution, error: executionError } = await supabaseAdmin.from("iris_execution_records").insert({ run_id: run.id, user_id: userId, capability_id: CAPABILITY_ID, operator_id: EXECUTOR_OPERATOR_ID, operator_version: EXECUTOR_OPERATOR_VERSION, execution_state: "EXECUTING", started_at: asOf, evidence_state: "CALCULATED", validation_status: "UNKNOWN", certification_status: "PENDING", input_manifest: executionManifest, input_hash: inputHash }).select("*").single();
   if (executionError || !execution) { await failRun(run.id, userId, `EXECUTION_RECORD_CREATE_FAILED: ${executionError?.message || "unknown error"}`); throw new Error(`Unable to create Iris execution record: ${executionError?.message || "unknown error"}`); }
   await supabaseAdmin.from("iris_runs").update({ status: "EXECUTING", evidence_version: "provider-observation-boundary-v4", updated_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
-
   const { error: inputError } = await supabaseAdmin.from("iris_execution_inputs").insert({ execution_id: execution.id, input_type: "execution_manifest", reference_type: "iris_run", reference_id: run.id, role: "primary", hash: inputHash });
   if (inputError) { await failExecution(run.id, execution.id, userId, "EXECUTION_INPUT_PERSIST_FAILED", inputError.message); throw new Error(`Unable to persist Iris execution input: ${inputError.message}`); }
 
   try {
     const recursive = await executeRecursiveCapabilityPlan(userId, plan, { runId: run.id, executionId: execution.id, asOf, evidenceBoundary: run.evidence_boundary, evidenceManifestHash, runEvidenceIds, persistLineage: ({ capabilityId, result, dependencyResults }) => persistRecursiveLineage({ userId, runId: run.id, executionId: execution.id, capabilityId, result, dependencyResults, runEvidenceIds }) }, { maxNodes: 10000, maxEdges: 30000, maxCompositions: 5000 });
     if (recursive.status !== "COMPLETED") { const code = recursive.status === "EXECUTION_BUDGET_EXCEEDED" ? "EXECUTION_BUDGET_EXCEEDED" : "RECURSIVE_CAPABILITY_EXECUTION_FAILED"; const message = recursive.error || `Recursive capability execution ended with ${recursive.status}.`; await failExecution(run.id, execution.id, userId, code, message); return { ...run, id: run.id, status: "FAILED", execution_id: execution.id, result: recursive, certified: false }; }
-
     const result = { architecture_version: "IRIS_RECURSIVE_CAPABILITY_GRAPH_V2", execution_status: recursive.status, requested_capabilities: requestedCapabilities, ordered_capabilities: recursive.ordered_capabilities, executed_capabilities: recursive.executed_capabilities, contracts: plan.contracts, results: recursive.results, graph_node_ids: recursive.graph_node_ids, resource_usage: recursive.resource_usage, arbitrary_recursive_compositions: { materializedNodeIds: [], skippedFindingIds: [] }, evidence_scope: evidenceScope, evidence_boundary: run.evidence_boundary, provenance: { source: "governed_capability_registry_and_run_bound_evidence", run_id: run.id, run_evidence_ids: runEvidenceIds, evidence_manifest_hash: evidenceManifestHash, planner_version: PLANNER_VERSION, executor_version: EXECUTOR_OPERATOR_VERSION, persisted_graph_version: "iris-persisted-intelligence-graph-v6", arbitrary_composition_version: "iris-arbitrary-recursive-composition-v3", financial_values_created: false, provider_observations_created: false, money_movement_executed: false } };
     const outputHash = hash(result); const finishedAt = new Date().toISOString();
     const { error: outputError } = await supabaseAdmin.from("iris_execution_outputs").insert({ execution_id: execution.id, output_key: "recursive_intelligence_graph", output_type: "recursive_intelligence_graph", value: result, hash: outputHash, evidence_state: "CALCULATED", uncertainty: null });
@@ -101,7 +92,6 @@ export async function executeIrisRun(request: RunRequest) {
     await supabaseAdmin.from("iris_runs").update({ status: "EXECUTED", completed_at: finishedAt, updated_at: finishedAt }).eq("id", run.id).eq("user_id", userId);
     const { error: executionStateError } = await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", completed_at: finishedAt, input_hash: inputHash, output_hash: outputHash, output_snapshot: { output_key: "recursive_intelligence_graph", output_hash: outputHash, executed_capabilities: recursive.executed_capabilities, resource_usage: recursive.resource_usage }, resource_usage: { duration_ms: Date.parse(finishedAt) - Date.parse(asOf), ...recursive.resource_usage }, validation_status: "UNKNOWN" }).eq("id", execution.id).eq("user_id", userId);
     if (executionStateError) { await failExecution(run.id, execution.id, userId, "EXECUTION_STATE_UPDATE_FAILED", executionStateError.message); throw new Error(`Unable to finalize Iris execution state: ${executionStateError.message}`); }
-
     const gate = await evaluateCertificationGate({ runId: run.id, executionId: execution.id, userId, inputHash, outputHash });
     const validationRows = Object.entries(gate.checks).map(([ruleId, gateCheck]) => ({ run_id: run.id, execution_id: execution.id, user_id: userId, rule_id: ruleId, rule_version: CERTIFICATION_POLICY_VERSION, status: gateCheck.status, severity: gateCheck.status === "PASS" ? "INFO" : "CRITICAL", expected: { status: "PASS" }, actual: { status: gateCheck.status }, details: { message: gateCheck.details, gate_version: CERTIFICATION_POLICY_VERSION } }));
     const { error: validationError } = await supabaseAdmin.from("iris_validation_results").insert(validationRows);
@@ -130,9 +120,13 @@ export async function executeIrisRun(request: RunRequest) {
     catch (reportError) { return await failPublication(run.id, execution.id, userId, "REPORT_PUBLICATION_FAILED", reportError); }
     try { await publicationRpc("iris_publication_mark_published", { p_run_id: run.id, p_execution_id: execution.id, p_user_id: userId }); }
     catch (publicationStateError) { return await failPublication(run.id, execution.id, userId, "PUBLICATION_STATE_PERSISTENCE_FAILED", publicationStateError); }
-
     return { ...run, id: run.id, status: "CERTIFIED", execution_id: execution.id, result, certified: true, certification_hash: certificationHash, certification_gate: gate, publication_status: "PUBLISHED" };
-  } catch (error) { await failExecution(run.id, execution.id, userId, "INTELLIGENCE_EXECUTION_FAILED", errorText(error)); throw error; }
+  } catch (error) {
+    const message = errorText(error);
+    if (/^(HIERARCHY_PUBLICATION_FAILED|REPORT_PUBLICATION_FAILED|PUBLICATION_STATE_PERSISTENCE_FAILED):/.test(message)) throw error;
+    await failExecution(run.id, execution.id, userId, "INTELLIGENCE_EXECUTION_FAILED", message);
+    throw error;
+  }
 }
 
 async function failExecution(runId: string, executionId: string, userId: string, code: string, message: string) { const now = new Date().toISOString(); await supabaseAdmin.from("iris_execution_records").update({ execution_state: "FAILED", completed_at: now, validation_status: "FAIL", certification_status: "NOT_CERTIFIED", error_code: code, error_message: message }).eq("id", executionId).eq("user_id", userId); await supabaseAdmin.from("iris_runs").update({ status: "FAILED", failure_code: code, failure_message: message, completed_at: now, updated_at: now }).eq("id", runId).eq("user_id", userId); }
