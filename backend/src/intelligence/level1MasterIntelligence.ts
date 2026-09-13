@@ -11,6 +11,7 @@ const TABLES = [
   ["plaid_raw_product_observations", "identity"],
   ["plaid_provider_response_receipts", "authentication"],
 ] as const;
+const NODE_BATCH_SIZE = 250;
 
 function hash(value: unknown) { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
 function semanticName(key: string) {
@@ -46,22 +47,36 @@ export async function executeLevel1MasterIntelligence(userId: string) {
   }
   const manifest = { run_id: run.id, user_id: userId, evidence: evidenceRows.map(e => ({ product: e.product, raw_observation_id: e.raw_observation_id, evidence_hash: e.evidence_hash })), evidence_boundary: asOf };
   const manifestHash = hash(manifest);
-  await supabaseAdmin.from("iris_run_evidence").insert(evidenceRows);
-  await supabaseAdmin.from("iris_runs").update({ status: "EXECUTING", evidence_manifest_hash: manifestHash, execution_policy: { level: LEVEL, evidence_gated: true, source_of_truth: "supabase", evidence_count: evidenceRows.length, downstream_levels_enabled: false }, updated_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
-  await supabaseAdmin.from("iris_execution_inputs").insert({ execution_id: execution.id, input_type: "supabase_source_manifest", reference_type: "iris_run", reference_id: run.id, role: "primary", hash: manifestHash });
+  const { error: evidenceError } = await supabaseAdmin.from("iris_run_evidence").insert(evidenceRows);
+  if (evidenceError) throw new Error(`LEVEL1_EVIDENCE_WRITE_FAILED:${evidenceError.message}`);
+  const { error: runUpdateError } = await supabaseAdmin.from("iris_runs").update({ status: "EXECUTING", evidence_manifest_hash: manifestHash, execution_policy: { level: LEVEL, evidence_gated: true, source_of_truth: "supabase", evidence_count: evidenceRows.length, downstream_levels_enabled: false }, updated_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
+  if (runUpdateError) throw new Error(`LEVEL1_RUN_UPDATE_FAILED:${runUpdateError.message}`);
+  const { error: inputError } = await supabaseAdmin.from("iris_execution_inputs").insert({ execution_id: execution.id, input_type: "supabase_source_manifest", reference_type: "iris_run", reference_id: run.id, role: "primary", hash: manifestHash });
+  if (inputError) throw new Error(`LEVEL1_INPUT_WRITE_FAILED:${inputError.message}`);
 
   const output = { hierarchy_level: LEVEL, intelligence_name: "IRIS Master Intelligence", source_of_truth: "Supabase", evidence_state: "OBSERVED", evidence_boundary: asOf, evidence_manifest_hash: manifestHash, content: sections, provenance: { provider_observations_created: false, financial_values_created: false, money_movement_executed: false, source_records_transformed: true }, downstream_levels_enabled: false };
   const outputHash = hash(output);
-  await supabaseAdmin.from("iris_execution_outputs").insert({ execution_id: execution.id, output_key: "level1_master_intelligence", output_type: "level1_master_intelligence", value: output, hash: outputHash, evidence_state: "OBSERVED", uncertainty: null });
-  for (const node of nodes) {
-    const nodeHash = hash({ userId, runId: run.id, executionId: execution.id, content: node.content });
-    await supabaseAdmin.from("iris_user_intelligence_nodes").insert({ user_id: userId, run_id: run.id, execution_id: execution.id, node_type: "level1_source_content", domain_key: node.domain, capability_id: "iris.master_intelligence", evidence_state: "OBSERVED", value: node.content, confidence: 1, as_of: asOf, evidence_boundary: asOf, provenance: { source_table: node.table, source_record_id: node.sourceId, source_of_truth: "supabase", evidence_manifest_hash: manifestHash }, node_hash: nodeHash, intelligence_key: String(node.content.intelligence_key), intelligence_name: String(node.content.intelligence_name), derivation_operator: "level1MasterIntelligence", derivation_version: "iris-level1-master-v1", upstream_node_ids: [], recursive_ancestry: [], recursive_depth: 0 });
+  const { error: outputError } = await supabaseAdmin.from("iris_execution_outputs").insert({ execution_id: execution.id, output_key: "level1_master_intelligence", output_type: "level1_master_intelligence", value: output, hash: outputHash, evidence_state: "OBSERVED", uncertainty: null });
+  if (outputError) throw new Error(`LEVEL1_OUTPUT_WRITE_FAILED:${outputError.message}`);
+
+  for (let start = 0; start < nodes.length; start += NODE_BATCH_SIZE) {
+    const batch = nodes.slice(start, start + NODE_BATCH_SIZE).map(node => {
+      const nodeHash = hash({ userId, runId: run.id, executionId: execution.id, content: node.content });
+      return { user_id: userId, run_id: run.id, execution_id: execution.id, node_type: "level1_source_content", domain_key: node.domain, capability_id: "iris.master_intelligence", evidence_state: "OBSERVED", value: node.content, confidence: 1, as_of: asOf, evidence_boundary: asOf, provenance: { source_table: node.table, source_record_id: node.sourceId, source_of_truth: "supabase", evidence_manifest_hash: manifestHash }, node_hash: nodeHash, intelligence_key: String(node.content.intelligence_key), intelligence_name: String(node.content.intelligence_name), derivation_operator: "level1MasterIntelligence", derivation_version: "iris-level1-master-v1", upstream_node_ids: [], recursive_ancestry: [], recursive_depth: 0 };
+    });
+    const { error: nodeError } = await supabaseAdmin.from("iris_user_intelligence_nodes").insert(batch);
+    if (nodeError) throw new Error(`LEVEL1_NODE_BATCH_WRITE_FAILED:${start}:${nodeError.message}`);
   }
+
   const validation = ["AUTHENTICATED_USER_SCOPE","SUPABASE_SOURCE_READ","EVIDENCE_MANIFEST_BOUND","NO_FINANCIAL_VALUES_CREATED","LEVEL1_OUTPUT_HASHED","SCREEN_BOUND_TO_LEVEL1_OUTPUT"].map(rule_id => ({ run_id: run.id, execution_id: execution.id, user_id: userId, rule_id, rule_version: "iris-level1-certification-v1", status: "PASS", severity: "INFO", expected: { status: "PASS" }, actual: { status: "PASS" }, details: { level: LEVEL } }));
-  await supabaseAdmin.from("iris_validation_results").insert(validation);
+  const { error: validationError } = await supabaseAdmin.from("iris_validation_results").insert(validation);
+  if (validationError) throw new Error(`LEVEL1_VALIDATION_WRITE_FAILED:${validationError.message}`);
   const certificationHash = hash({ run_id: run.id, execution_id: execution.id, input_hash: manifestHash, output_hash: outputHash, policy: "iris-level1-certification-v1" });
-  await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, result_id: execution.id, policy_version: "iris-level1-certification-v1", status: "CERTIFIED", validation_snapshot: { status: "PASS", level: LEVEL }, reconciliation_snapshot: { source_record_count: nodes.length, hierarchy_node_count: nodes.length }, evidence_snapshot: { evidence_count: evidenceRows.length, evidence_manifest_hash: manifestHash }, certification_hash: certificationHash, certified_at: new Date().toISOString() });
-  await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", completed_at: new Date().toISOString(), output_hash: outputHash, output_snapshot: { output_key: "level1_master_intelligence", output_hash: outputHash }, validation_status: "PASS", certification_status: "CERTIFIED", publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: new Date().toISOString() }).eq("id", execution.id).eq("user_id", userId);
-  await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: new Date().toISOString(), updated_at: new Date().toISOString(), publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
+  const { error: certificationError } = await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, result_id: execution.id, policy_version: "iris-level1-certification-v1", status: "CERTIFIED", validation_snapshot: { status: "PASS", level: LEVEL }, reconciliation_snapshot: { source_record_count: nodes.length, hierarchy_node_count: nodes.length }, evidence_snapshot: { evidence_count: evidenceRows.length, evidence_manifest_hash: manifestHash }, certification_hash: certificationHash, certified_at: new Date().toISOString() });
+  if (certificationError) throw new Error(`LEVEL1_CERTIFICATION_WRITE_FAILED:${certificationError.message}`);
+  const { error: executionUpdateError } = await supabaseAdmin.from("iris_execution_records").update({ execution_state: "EXECUTED", completed_at: new Date().toISOString(), output_hash: outputHash, output_snapshot: { output_key: "level1_master_intelligence", output_hash: outputHash }, validation_status: "PASS", certification_status: "CERTIFIED", publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: new Date().toISOString() }).eq("id", execution.id).eq("user_id", userId);
+  if (executionUpdateError) throw new Error(`LEVEL1_EXECUTION_FINALIZE_FAILED:${executionUpdateError.message}`);
+  const { error: finalRunError } = await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: new Date().toISOString(), updated_at: new Date().toISOString(), publication_status: "HIERARCHY_PUBLISHED", hierarchy_published_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
+  if (finalRunError) throw new Error(`LEVEL1_RUN_FINALIZE_FAILED:${finalRunError.message}`);
   return { runId: run.id, executionId: execution.id, certificationHash, output };
 }
