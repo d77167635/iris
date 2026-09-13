@@ -27,7 +27,7 @@ A document may describe a required architecture, but it cannot be used as proof 
 Before modifying anything:
 
 1. Read the current relevant README and ROADMAP.
-2. Read `docs/MASTER_STATE.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/SESSION_HANDOFF.md`.
+2. Read `docs/MASTER_STATE.md`, `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, and `docs/SESSION_HANDOFF.md` when present.
 3. Inspect the exact current repository files involved in the change.
 4. Inspect the relevant live Render service/deployment state.
 5. Inspect the relevant live Supabase schema/data/runtime state.
@@ -145,18 +145,76 @@ The governing progression is:
 
 No later state implies an earlier state is certified.
 
-## 10. Current implementation target
+## 10. Current verified hierarchy boundary — 2026-09-13
+
+The authoritative hierarchy write boundary is now explicitly **post-certification only**.
+
+The legitimate current persisted hierarchy state is:
+
+```text
+iris_user_intelligence_nodes          = 0
+iris_user_intelligence_edges         = 0
+iris_user_intelligence_compositions  = 0
+hierarchy-intelligence lineage       = 0
+iris_certifications                  = 0
+published certified intelligence     = 0
+```
+
+This zero state is intentional after removal of pre-certification hierarchy artifacts. It is not evidence that the hierarchy is optional or that hierarchy intelligence has been successfully generated.
+
+The current distinction is mandatory:
+
+```text
+capability infrastructure exists
+        ≠
+authoritative hierarchy intelligence exists
+```
+
+Actual hierarchy materialization may occur only after a real run has passed execution, semantic validation, validation persistence, and certification. The database certification guards independently enforce this boundary.
+
+### Current implementation changes
+
+- Recursive capability execution no longer receives a hierarchy-node persistence callback.
+- Arbitrary recursive compositions independently require an exact `CERTIFIED` run before materialization.
+- Pre-certification hierarchy artifacts were purged.
+- The test fixture that previously activated semantic contracts accidentally was corrected without weakening semantic validation.
+- Render is required to build and pass the complete backend test suite before the corrected runtime can become live.
+
+### Current unverified boundary
+
+A real governed run has **not yet been proven end-to-end certified after these corrections**. Therefore the first legitimate hierarchy generation, validation, reverse lineage, and unified UI consumption remain unverified.
+
+No documentation may describe hierarchy nodes, edges, compositions, certified intelligence, or published intelligence as currently generated until that runtime proof exists.
+
+## 11. Current implementation target
 
 The immediate build target is the complete IRIS experience as one governed hierarchy:
 
-- fix the recursive intelligence runtime until real governed evidence can produce valid execution outputs;
+- finish the recursive intelligence runtime until real governed evidence can produce valid execution outputs;
 - preserve exact Item/user evidence scope;
-- materialize exact intelligence graph lineage;
+- materialize exact intelligence graph lineage only after certification;
 - make every registered UI route express its real function rather than a generic substitute;
 - make every visible interaction execute its intended supported behavior;
 - normalize IRIS visual cognition across all surfaces;
 - preserve truthful insufficient-evidence, unavailable, deferred, loading, and error states;
-- prove forward and reverse traversal; and
+- prove forward and reverse traversal;
+- unify intelligence presentation around the authoritative hierarchy rather than competing graph models; and
 - certify only after authenticated end-to-end verification.
 
 No implementation step may bypass the evidence boundary to make the UI look complete.
+
+## 12. Documentation synchronization rule
+
+README, ROADMAP, architecture, screen maps, product libraries, continuity documents, decisions, changelog, and other active IRIS documentation must use the same architectural truth:
+
+- one complete hierarchy;
+- no two-side architecture;
+- any IRIS surface may expose supported evidence-derived intelligence;
+- fake AI data is strictly prohibited;
+- capability infrastructure is not persisted hierarchy intelligence;
+- authoritative hierarchy writes are post-certification only;
+- zero hierarchy rows remain the truthful state until a real certified run materializes them;
+- Products and Reports are independent quantities; and
+- documentation cannot substitute for runtime proof.
+
+Historical documents may retain historical chronology, but they must not state superseded architecture as current truth.
