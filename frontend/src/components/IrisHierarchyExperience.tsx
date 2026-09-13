@@ -7,6 +7,7 @@ type Relationship = { relation_type?: string; account_id?: string; item_id?: str
 type Domain = { domain_key: string; evidence_state: string; canonical_fields?: Field[]; derived_fields?: Field[]; relationships?: Relationship[]; domain_intelligence?: any[]; limitations?: string[] };
 type Cross = { key: string; name: string; domains: string[]; state: string; value: Record<string, unknown> };
 type Level2 = { certified?: boolean; level: number; evidence_boundary?: string; domains?: Domain[]; cross_domain?: Cross[]; materialized?: { nodes: number; edges: number; compositions: number } };
+type Level3Analysis = { certified?: boolean; status?: string; run_id?: string; execution_id?: string; evidence_boundary?: string; output_hash?: string; result?: { analysis?: { financial_state?: Record<string, unknown>; transaction_analysis?: Record<string, unknown>; relational_analysis?: { transaction_relationship_count?: number; relationships?: Relationship[]; cross_domain_relationship_count?: number; cross_domain?: Cross[] }; evidence_analysis?: { domains?: Array<Record<string, unknown>>; unsupported_domains_remain_insufficient_evidence?: string[] } }; evidence_boundary?: string; upstream?: { level?: number; run_id?: string; execution_id?: string; output_hash?: string }; provenance?: Record<string, unknown> } };
 
 const names: Record<string, string> = { authentication: "Connections", transactions: "Transactions", balance: "Balance", identity: "Identity", assets: "Assets", liabilities: "Liabilities", investments: "Investments", statements: "Statements" };
 const money = (v: unknown) => typeof v === "number" && Number.isFinite(v) ? `${v < 0 ? "−" : ""}$${Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : v == null ? "—" : String(v);
@@ -25,20 +26,70 @@ function TransactionRecord({ field }: { field: Field }) {
 }
 
 export function IrisHierarchyExperience() {
-  const [data, setData] = useState<Level2 | null>(null); const [active, setActive] = useState("overview"); const [error, setError] = useState<string | null>(null); const [running, setRunning] = useState(true);
-  const load = async () => { setError(null); setRunning(true); try { let current = await api.getIrisLevel2(); if (!current?.certified) { const result = await api.runIrisLevel2(); if (result?.certification_status !== "CERTIFIED") throw new Error("IRIS could not certify the current financial hierarchy."); current = await api.getIrisLevel2(); } if (!current?.certified) throw new Error("The certified IRIS hierarchy is not available."); setData(current); } catch (e) { setError(e instanceof Error ? e.message : "IRIS could not load the current hierarchy."); } finally { setRunning(false); } };
+  const [data, setData] = useState<Level2 | null>(null);
+  const [level3, setLevel3] = useState<Level3Analysis | null>(null);
+  const [active, setActive] = useState("overview");
+  const [error, setError] = useState<string | null>(null);
+  const [running, setRunning] = useState(true);
+  const [level3Running, setLevel3Running] = useState(false);
+
+  const load = async () => {
+    setError(null); setRunning(true);
+    try {
+      let current = await api.getIrisLevel2();
+      if (!current?.certified) {
+        const result = await api.runIrisLevel2();
+        if (result?.certification_status !== "CERTIFIED") throw new Error("IRIS could not certify the current financial hierarchy.");
+        current = await api.getIrisLevel2();
+      }
+      if (!current?.certified) throw new Error("The certified IRIS hierarchy is not available.");
+      setData(current);
+      try {
+        let analysis = await api.getIrisLevel3Analysis();
+        if (!analysis?.certified) {
+          setLevel3Running(true);
+          analysis = await api.runIrisLevel3Analysis();
+        }
+        setLevel3(analysis);
+      } catch (level3Error) {
+        console.error("Level 3 analysis unavailable", level3Error);
+        setLevel3(null);
+      } finally { setLevel3Running(false); }
+    } catch (e) { setError(e instanceof Error ? e.message : "IRIS could not load the current hierarchy."); }
+    finally { setRunning(false); }
+  };
   useEffect(() => { void load(); }, []);
-  const domains = data?.domains ?? []; const selected = domains.find(d => d.domain_key === active); const cross = data?.cross_domain ?? [];
+
+  const domains = data?.domains ?? [];
+  const selected = domains.find(d => d.domain_key === active);
+  const cross = data?.cross_domain ?? [];
   const connections = useMemo(() => cross.filter(x => x.domains.length >= 2), [cross]);
   const accountNames = useMemo(() => { const map = new Map<string, string>(); const balances = domains.find(d => d.domain_key === "balance")?.canonical_fields ?? []; for (const field of balances) { const id = field.field_key.match(/^account:([^.]*)\.balance$/)?.[1]; if (id) map.set(id, field.label); } return map; }, [domains]);
   const relationshipLabel = (r: Relationship) => r.account_id ? accountNames.get(r.account_id) ?? "Connected account" : r.item_id ? "Connected institution" : pretty(r.relation_type ?? "relationship");
+  const analysis = level3?.result?.analysis;
+  const financialState = analysis?.financial_state ?? {};
+  const transactionAnalysis = analysis?.transaction_analysis ?? {};
+  const relationalAnalysis = analysis?.relational_analysis ?? {};
+  const evidenceAnalysis = analysis?.evidence_analysis ?? {};
+
   if (running) return <main className="ih-loading"><div className="ih-orb">I</div><h1>IRIS</h1><p>Assembling your connected financial life…</p></main>;
   if (error || !data) return <main className="ih-loading"><div className="ih-orb">I</div><h1>IRIS</h1><p>{error ?? "Your financial state could not be loaded."}</p><button onClick={() => void load()}>Try again</button></main>;
+
   return <main className="ih-app">
     <header className="ih-header"><div className="ih-brand"><div className="ih-mark">I</div><div><b>IRIS</b><span>Financial life intelligence</span></div></div><div className="ih-header-state"><span className="ih-live"/>Current state <State state="OBSERVED"/></div></header>
     <div className="ih-layout"><aside className="ih-nav"><div className="ih-nav-title">Your financial life</div><button className={active === "overview" ? "active" : ""} onClick={() => setActive("overview")}>Overview</button>{domains.map(d => <button key={d.domain_key} className={active === d.domain_key ? "active" : ""} onClick={() => setActive(d.domain_key)}>{names[d.domain_key] ?? pretty(d.domain_key)}<State state={d.evidence_state}/></button>)}</aside>
       <section className="ih-content">{active === "overview" ? <>
         <div className="ih-hero"><div><span className="ih-eyebrow">Your financial life</span><h1>See the relationships,<br/>not just the numbers.</h1><p>IRIS organizes authorized financial evidence into a living, relational state. Move through the hierarchy and connected intelligence stays in context.</p></div><div className="ih-core"><div className="ih-core-ring">IRIS</div>{domains.map((d, i) => <i key={d.domain_key} style={{ ["--i" as any]: i }}/>)}</div></div>
+
+        <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Level 3 · Intelligence</span><h2>Analysis</h2></div><span>{level3Running ? "Building from certified Level 2" : level3?.certified ? "Certified" : "Insufficient evidence"}</span></div>
+          {level3?.certified && analysis ? <div className="ih-level3-grid">
+            <article className="ih-level3-card"><span>Financial state</span><State state="CALCULATED"/><strong>{String(financialState.domain_count ?? "—")} domains observed</strong><small>{Array.isArray(financialState.observed_domains) ? financialState.observed_domains.map((d) => names[String(d)] ?? pretty(String(d))).join(" · ") : "Evidence scope not available"}</small></article>
+            <article className="ih-level3-card"><span>Cash-flow analysis</span><State state="CALCULATED"/><strong>{money(transactionAnalysis.net_cash_flow)}</strong><small>Observed net cash flow carried from Level 2</small></article>
+            <article className="ih-level3-card"><span>Relational analysis</span><State state="CALCULATED"/><strong>{String(relationalAnalysis.transaction_relationship_count ?? 0)} observed relationships</strong><small>{String(relationalAnalysis.cross_domain_relationship_count ?? 0)} cross-domain relationships remain in context</small></article>
+            <article className="ih-level3-card"><span>Evidence analysis</span><State state="CALCULATED"/><strong>{String(Array.isArray(evidenceAnalysis.domains) ? evidenceAnalysis.domains.length : 0)} domains assessed</strong><small>{Array.isArray(evidenceAnalysis.unsupported_domains_remain_insufficient_evidence) && evidenceAnalysis.unsupported_domains_remain_insufficient_evidence.length ? `Insufficient: ${evidenceAnalysis.unsupported_domains_remain_insufficient_evidence.map((d) => names[String(d)] ?? pretty(String(d))).join(", ")}` : "No unsupported domain was promoted"}</small></article>
+          </div> : <div className="ih-empty">Level 3 Analysis is not published because its certified Level 2 parent is not available.</div>}
+        </section>
+
         <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Connected state</span><h2>The financial picture</h2></div><span>{domains.length} domains</span></div><div className="ih-domain-strip">{domains.map(d => <button key={d.domain_key} onClick={() => setActive(d.domain_key)}><span>{names[d.domain_key] ?? pretty(d.domain_key)}</span><State state={d.evidence_state}/><b>{(d.derived_fields ?? []).length + (d.domain_intelligence ?? []).length}</b><small>intelligence elements</small></button>)}</div></section>
         <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Combinations</span><h2>Where your financial state connects</h2></div><span>{connections.length} relationships</span></div><div className="ih-connections">{connections.length ? connections.map(c => <article key={c.key}><div className="ih-connection-nodes">{c.domains.map(d => <span key={d}>{names[d] ?? pretty(d)}</span>)}</div><h3>{c.name}</h3><p>{Object.entries(c.value).filter(([k]) => k !== "evidence_boundary").map(([k,v]) => <span key={k}><b>{pretty(k)}</b>{money(v)}</span>)}</p><State state={c.state}/></article>) : <div className="ih-empty">No cross-domain relationship is supported by the certified evidence.</div>}</div></section>
         <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Relational view</span><h2>Follow the financial state</h2></div><span>{data.materialized?.nodes ?? 0} nodes · {data.materialized?.edges ?? 0} relationships</span></div><div className="ih-graph"><div className="ih-graph-center">IRIS<span>financial life</span></div>{domains.map((d, i) => <button key={d.domain_key} style={{ ["--i" as any]: i }} onClick={() => setActive(d.domain_key)}>{names[d.domain_key] ?? pretty(d.domain_key)}</button>)}</div></section>
