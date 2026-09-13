@@ -2,13 +2,14 @@ import { createHash } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
 import type { CapabilityOperatorResult } from "./capabilityOperators.js";
 
-export const PERSISTED_INTELLIGENCE_GRAPH_VERSION = "iris-persisted-intelligence-graph-v8" as const;
-type PersistedNode = { id: string; capability_id: string | null; intelligence_key: string | null; node_hash: string; evidence_state: CapabilityOperatorResult["evidence_state"] };
+export const PERSISTED_INTELLIGENCE_GRAPH_VERSION = "iris-persisted-intelligence-graph-v9" as const;
+type GraphEvidenceState = "OBSERVED" | "CALCULATED" | "INFERRED" | "PREDICTED" | "SCENARIO" | "INSUFFICIENT_EVIDENCE";
+type PersistedNode = { id: string; capability_id: string | null; intelligence_key: string | null; node_hash: string; evidence_state: GraphEvidenceState };
 type UpstreamNodeReference = { nodeId: string; role: string; sourceFieldPath?: string | null };
-export type ArbitraryDerivedIntelligenceDefinition = { intelligenceKey: string; intelligenceName: string; capabilityId?: string | null; domainKey?: string | null; nodeType?: "intelligence" | "cross_domain" | "field"; derivationOperator: string; derivationVersion: string; evidenceState: CapabilityOperatorResult["evidence_state"] | "LIMITED"; value: Record<string, unknown>; asOf?: string | null; evidenceBoundary?: string | null; provenance?: Record<string, unknown>; upstream: UpstreamNodeReference[] };
+export type ArbitraryDerivedIntelligenceDefinition = { intelligenceKey: string; intelligenceName: string; capabilityId?: string | null; domainKey?: string | null; nodeType?: "intelligence" | "cross_domain" | "field"; derivationOperator: string; derivationVersion: string; evidenceState: GraphEvidenceState | "LIMITED"; value: Record<string, unknown>; asOf?: string | null; evidenceBoundary?: string | null; provenance?: Record<string, unknown>; upstream: UpstreamNodeReference[] };
 function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
 function normalizeUpstream(upstream: UpstreamNodeReference[]): UpstreamNodeReference[] { const seen = new Set<string>(); return upstream.filter((r) => typeof r.nodeId === "string" && r.nodeId.length > 0).filter((r) => { if (seen.has(r.nodeId)) return false; seen.add(r.nodeId); return true; }).sort((a, b) => a.nodeId.localeCompare(b.nodeId)); }
-function normalizeEvidenceState(state: ArbitraryDerivedIntelligenceDefinition["evidenceState"]): CapabilityOperatorResult["evidence_state"] { return state === "LIMITED" ? "INSUFFICIENT_EVIDENCE" : state; }
+function normalizeEvidenceState(state: ArbitraryDerivedIntelligenceDefinition["evidenceState"]): GraphEvidenceState { return state === "LIMITED" ? "INSUFFICIENT_EVIDENCE" : state; }
 
 async function requireCertifiedRun(input: { userId: string; runId: string; executionId: string }): Promise<void> {
   const { data, error } = await supabaseAdmin.from("iris_certifications").select("id,status").eq("user_id", input.userId).eq("run_id", input.runId).eq("execution_id", input.executionId).eq("status", "CERTIFIED").maybeSingle();
@@ -16,7 +17,6 @@ async function requireCertifiedRun(input: { userId: string; runId: string; execu
   if (!data) throw new Error("IRIS_HIERARCHY_CERTIFICATION_REQUIRED: hierarchy materialization requires an exact certified run");
 }
 
-/** Persist a recursively derived intelligence node. Application and database certification gates both apply. */
 export async function persistArbitraryDerivedIntelligenceNode(input: { userId: string; runId: string; executionId: string; definition: ArbitraryDerivedIntelligenceDefinition }): Promise<PersistedNode> {
   await requireCertifiedRun(input);
   const upstream = normalizeUpstream(input.definition.upstream);
