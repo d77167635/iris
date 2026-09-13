@@ -17,27 +17,19 @@ function choosePrimary(blocks: ReportContentBlock[]): ReportContentBlock { if (!
 function buildDescription(primary: ReportContentBlock, blocks: ReportContentBlock[]): string { const names = [...new Set(blocks.map((block) => normalizeName(block.name)).filter(Boolean))]; const supporting = names.filter((name) => name !== primary.name).slice(0, 4); return supporting.length ? `${primary.name} report combining ${supporting.join(", ")} from the certified IRIS hierarchy.` : `${primary.name} report generated from the certified IRIS hierarchy.`; }
 function classifyRuntimeNode(node: RuntimeNode): ReportContentBlock["kind"] { const semantic = `${node.intelligence_key ?? ""} ${node.intelligence_name ?? ""} ${node.capability_id ?? ""}`; if (/scenario|simulation|hypothetical/i.test(semantic)) return "scenario"; if (/outcome|learning|observed.?outcome/i.test(semantic)) return "outcome"; if (/explanation|education|reasoning/i.test(semantic)) return "explanation"; if (/state|position|financial.?life/i.test(semantic)) return "derived_state"; if (/report/i.test(semantic)) return "report"; return "intelligence"; }
 
-/**
- * The execution output is the pre-certification calculation artifact. This
- * function is invoked only after the certification row has been created, and
- * is the sole application path that materializes the durable user hierarchy.
- */
-async function materializeCertifiedHierarchy(input: { userId: string; runId: string; executionId: string; certificationHash: string }): Promise<void> {
+export async function materializeCertifiedHierarchy(input: { userId: string; runId: string; executionId: string; certificationHash: string }): Promise<void> {
   const { data: certification, error: certificationError } = await supabaseAdmin.from("iris_certifications").select("id,status,certification_hash").eq("run_id", input.runId).eq("execution_id", input.executionId).eq("user_id", input.userId).eq("status", "CERTIFIED").maybeSingle();
   if (certificationError) throw new Error(`IRIS_HIERARCHY_CERTIFICATION_LOOKUP_FAILED: ${certificationError.message}`);
   if (!certification || certification.certification_hash !== input.certificationHash) throw new Error("IRIS_HIERARCHY_CERTIFICATION_REQUIRED: exact certification was not found");
-
   const { data: run, error: runError } = await supabaseAdmin.from("iris_runs").select("evidence_boundary,evidence_manifest_hash").eq("id", input.runId).eq("user_id", input.userId).eq("status", "CERTIFIED").single();
   if (runError || !run) throw new Error(`IRIS_HIERARCHY_CERTIFIED_RUN_LOOKUP_FAILED: ${runError?.message ?? "certified run not found"}`);
   const { data: output, error: outputError } = await supabaseAdmin.from("iris_execution_outputs").select("value,hash").eq("execution_id", input.executionId).single();
   if (outputError || !output) throw new Error(`IRIS_HIERARCHY_EXECUTION_OUTPUT_LOOKUP_FAILED: ${outputError?.message ?? "execution output not found"}`);
-
   const executionOutput = output.value as ExecutionOutput;
   const results = executionOutput.results ?? {};
   const contracts = executionOutput.contracts ?? [];
   const nodeIds: Record<string, string> = {};
   const ordered = executionOutput.executed_capabilities ?? contracts.map((contract) => contract.capability_id);
-
   for (const capabilityId of ordered) {
     const result = results[capabilityId];
     if (!result) continue;
@@ -51,7 +43,6 @@ async function materializeCertifiedHierarchy(input: { userId: string; runId: str
     const node = await persistUserIntelligenceGraph({ userId: input.userId, runId: input.runId, executionId: input.executionId, capabilityId, result, dependencyResults, dependencyNodeIds });
     nodeIds[capabilityId] = node.id;
   }
-
   const emergentResult = results.emergent?.result;
   const findings = emergentResult && typeof emergentResult === "object" && Array.isArray((emergentResult as Record<string, unknown>).higher_order_findings) ? (emergentResult as { higher_order_findings: Parameters<typeof materializeArbitraryRecursiveCompositions>[0]["synthesis"]["higher_order_findings"] }).higher_order_findings : null;
   if (findings) {
@@ -70,7 +61,6 @@ export function composeIrisUserReport(input: { userId: string; runId: string; ex
 }
 
 export async function materializeIrisUserReportInventory(input: { userId: string; runId: string; executionId: string; certificationHash: string }): Promise<void> {
-  await materializeCertifiedHierarchy(input);
   const { data: nodes, error: nodeError } = await supabaseAdmin.from("iris_user_intelligence_nodes").select("id,intelligence_key,intelligence_name,capability_id,value,evidence_state,recursive_depth,upstream_node_ids").eq("user_id", input.userId).eq("run_id", input.runId).eq("execution_id", input.executionId);
   if (nodeError) throw new Error(`IRIS_USER_REPORT_NODE_LOOKUP_FAILED: ${nodeError.message}`);
   const runtimeNodes = (nodes ?? []) as RuntimeNode[];
