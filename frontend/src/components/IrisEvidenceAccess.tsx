@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { IrisMark } from "./IrisMark";
 import { PlaidLinkButton } from "./PlaidLink";
-import { api } from "../api/backend";
+import { api, IrisApiError } from "../api/backend";
 import "./IrisEvidenceAccess.css";
 
 type Props = { go?: (page: string) => void };
@@ -10,6 +10,8 @@ export function IrisEvidenceAccess({ go }: Props) {
   const [items, setItems] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [runMessage, setRunMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const loadItems = useCallback(async () => {
@@ -32,6 +34,7 @@ export function IrisEvidenceAccess({ go }: Props) {
     if (refreshing) return;
     setRefreshing(true);
     setError(null);
+    setRunMessage(null);
     try {
       await api.resync();
       await loadItems();
@@ -39,6 +42,25 @@ export function IrisEvidenceAccess({ go }: Props) {
       setError(err instanceof Error ? err.message : "Provider evidence refresh failed. No fallback data was created.");
     } finally {
       setRefreshing(false);
+    }
+  };
+
+  const runIris = async () => {
+    if (running) return;
+    setRunning(true);
+    setError(null);
+    setRunMessage(null);
+    try {
+      const result = await api.runIris({ surface: "iris/evidence", mode: "full_intelligence" });
+      setRunMessage(`IRIS execution ${result?.status ?? "accepted"}. Run: ${result?.run_id ?? "—"}.`);
+    } catch (err) {
+      if (err instanceof IrisApiError && err.body?.run_id) {
+        setRunMessage(`IRIS execution ${err.body.status ?? "failed"}. Run: ${err.body.run_id}. ${err.body.certification_gate?.status ?? "Certification not passed"}.`);
+      } else {
+        setError(err instanceof Error ? err.message : "IRIS intelligence execution could not be completed.");
+      }
+    } finally {
+      setRunning(false);
     }
   };
 
@@ -57,12 +79,14 @@ export function IrisEvidenceAccess({ go }: Props) {
           <p>New provider connections use the governed Plaid Link flow. Existing Plaid Items remain persisted and are not replaced or deleted by opening a new connection.</p>
           <PlaidLinkButton onSuccess={() => void loadItems()} />
           <button type="button" className="iea-later" onClick={() => void resync()} disabled={refreshing}>{refreshing ? "Refreshing existing evidence…" : "Refresh existing evidence"}</button>
+          <button type="button" className="iea-later" onClick={() => void runIris()} disabled={running}>{running ? "Running IRIS intelligence…" : "Run IRIS intelligence"}</button>
+          {runMessage && <div className="plaid-connect-error" role="status"><span>{runMessage}</span></div>}
           {error && <div className="plaid-connect-error" role="alert"><span>{error}</span><button type="button" onClick={() => void loadItems()} disabled={loadingItems}>Retry</button></div>}
           <div className="iea-boundary">
             <div><b>OBSERVED</b><span>Provider responses become evidence only after they are actually received and persisted.</span></div>
             <div><b>GOVERNED</b><span>Evidence stays tied to the authenticated user and exact Item boundary.</span></div>
             <div><b>READ-ONLY</b><span>No financial movement is initiated by evidence formation.</span></div>
-            <div><b>CERTIFICATION</b><span>Provider connection uses the existing authenticated Plaid Link and exchange path.</span></div>
+            <div><b>RUNTIME</b><span>IRIS execution may be requested from this governed evidence boundary; publication still requires the server certification gates.</span></div>
           </div>
         </aside>
       </section>
@@ -72,7 +96,7 @@ export function IrisEvidenceAccess({ go }: Props) {
       </section>
       <section className="iea-items">
         <div><span className="iea-kicker">CONTINUE</span><h2>Continue through your financial life.</h2><p>Use the Financial Life, Reports and Intelligence surfaces to inspect persisted provider evidence and governed results.</p></div>
-        <div className="iris-journey-actions"><button type="button" onClick={() => go?.("iris")}>Financial Life →</button><button type="button" onClick={() => go?.("iris/catalog")}>Reports →</button><button type="button" onClick={() => go?.("iris/intelligence")}>Intelligence →</button></div>
+        <div className="iris-journey-actions"><button type="button" onClick={() => go?.("iris")}>Financial Life →</button><button type="button" onClick={() => go?.("iris/reports")}>Reports →</button><button type="button" onClick={() => go?.("iris/intelligence")}>Intelligence →</button></div>
       </section>
     </main>
   );
