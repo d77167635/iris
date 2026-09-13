@@ -70,7 +70,7 @@ export function IrisScenarioSurface({ go }: Props) {
       {error && <div className="iris-surface"><span className="eyebrow">SCENARIO STATUS</span><h2>Calculation unavailable</h2><p>{error}</p><p>IRIS will not substitute a zero, example value, or fabricated baseline when the governing intelligence result is unavailable.</p></div>}
       <div className="iris-whatif-controls">
         <label>Variable<select value={type} onChange={(event) => setType(event.target.value as ScenarioType)}><option value="spending_change">Spending change ($)</option><option value="bill_change">Essential-bill change ($)</option><option value="income_change">30-day inflow change (%)</option></select></label>
-        <label>Change<input type="number" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder={type === "income_change" ? "−10" : "−300"}/></label>
+        <label>Change<input type="number" value={amount} onChange={(event) => setAmount(event.target.value)} aria-label="Scenario change amount" /></label>
         <button type="button" onClick={() => void run()} disabled={running || amount === ""}>{running ? "Calculating…" : "Run scenario"}</button>
       </div>
     </section>
