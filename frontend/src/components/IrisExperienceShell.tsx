@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import { IrisAssistant } from "./IrisAssistant";
+import { IrisFinancialContext } from "./IrisFinancialContext";
 import { flattenWorkspaceRegistry, irisWorkspaceRegistry } from "./irisWorkspaceRegistry";
 
 export type IrisJourneySurface = { page: string; label: string; description: string };
@@ -46,15 +47,11 @@ export function IrisExperienceShell({ page, go, children }: Props) {
     <section className="ies-workspace-index" aria-label="All IRIS financial-life workspace surfaces">
       <span className="ies-workspace-index-label">ALL FINANCIAL-LIFE SURFACES</span>
       <nav className="ies-workspace-index-nav">
-        {workspaceNodes.map((item) => {
-          const isRoot = irisWorkspaceRegistry.some((root) => root.id === item.id);
-          return <button key={item.id} type="button" className={page === item.id ? "active" : ""} onClick={() => go(item.id)} aria-current={page === item.id ? "page" : undefined} data-root={isRoot ? "true" : "false"}>
-            <strong>{item.label}</strong><span>{item.description}</span>
-          </button>;
-        })}
+        {workspaceNodes.map((item) => { const isRoot = irisWorkspaceRegistry.some((root) => root.id === item.id); return <button key={item.id} type="button" className={page === item.id ? "active" : ""} onClick={() => go(item.id)} aria-current={page === item.id ? "page" : undefined} data-root={isRoot ? "true" : "false"}><strong>{item.label}</strong><span>{item.description}</span></button>; })}
       </nav>
     </section>
     <div className="ies-journey" aria-label="IRIS financial-life journey"><span className="ies-journey-label">IRIS · RECURSIVE JOURNEY</span>{journey.map((item, index) => <span key={item.page} className={page === item.page ? "active" : ""}><button type="button" onClick={() => go(item.page)} aria-current={page === item.page ? "step" : undefined}>{item.label}</button>{index < journey.length - 1 && <i aria-hidden="true">→</i>}</span>)}</div>
+    <IrisFinancialContext go={go} />
     <main className="ies-content">{children}</main>
     <IrisAssistant />
   </div>;
