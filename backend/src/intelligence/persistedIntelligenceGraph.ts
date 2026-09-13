@@ -2,27 +2,20 @@ import { createHash } from "node:crypto";
 import { supabaseAdmin } from "../config/supabase.js";
 import type { CapabilityOperatorResult } from "./capabilityOperators.js";
 
-export const PERSISTED_INTELLIGENCE_GRAPH_VERSION = "iris-persisted-intelligence-graph-v7" as const;
+export const PERSISTED_INTELLIGENCE_GRAPH_VERSION = "iris-persisted-intelligence-graph-v8" as const;
 type PersistedNode = { id: string; capability_id: string | null; intelligence_key: string | null; node_hash: string; evidence_state: CapabilityOperatorResult["evidence_state"] };
 type UpstreamNodeReference = { nodeId: string; role: string; sourceFieldPath?: string | null };
-export type ArbitraryDerivedIntelligenceDefinition = { intelligenceKey: string; intelligenceName: string; capabilityId?: string | null; derivationOperator: string; derivationVersion: string; evidenceState: CapabilityOperatorResult["evidence_state"]; value: Record<string, unknown>; asOf?: string | null; evidenceBoundary?: string | null; provenance?: Record<string, unknown>; upstream: UpstreamNodeReference[] };
+export type ArbitraryDerivedIntelligenceDefinition = { intelligenceKey: string; intelligenceName: string; capabilityId?: string | null; domainKey?: string | null; nodeType?: "intelligence" | "cross_domain" | "field"; derivationOperator: string; derivationVersion: string; evidenceState: CapabilityOperatorResult["evidence_state"]; value: Record<string, unknown>; asOf?: string | null; evidenceBoundary?: string | null; provenance?: Record<string, unknown>; upstream: UpstreamNodeReference[] };
 function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
 function normalizeUpstream(upstream: UpstreamNodeReference[]): UpstreamNodeReference[] { const seen = new Set<string>(); return upstream.filter((r) => typeof r.nodeId === "string" && r.nodeId.length > 0).filter((r) => { if (seen.has(r.nodeId)) return false; seen.add(r.nodeId); return true; }).sort((a, b) => a.nodeId.localeCompare(b.nodeId)); }
 
 async function requireCertifiedRun(input: { userId: string; runId: string; executionId: string }): Promise<void> {
-  const { data, error } = await supabaseAdmin
-    .from("iris_certifications")
-    .select("id,status")
-    .eq("user_id", input.userId)
-    .eq("run_id", input.runId)
-    .eq("execution_id", input.executionId)
-    .eq("status", "CERTIFIED")
-    .maybeSingle();
+  const { data, error } = await supabaseAdmin.from("iris_certifications").select("id,status").eq("user_id", input.userId).eq("run_id", input.runId).eq("execution_id", input.executionId).eq("status", "CERTIFIED").maybeSingle();
   if (error) throw new Error(`IRIS_HIERARCHY_CERTIFICATION_LOOKUP_FAILED: ${error.message}`);
   if (!data) throw new Error("IRIS_HIERARCHY_CERTIFICATION_REQUIRED: hierarchy materialization requires an exact certified run");
 }
 
-/** Persist a recursively derived intelligence node. This function is application-gated and database-gated; no caller flag can bypass certification. */
+/** Persist a recursively derived intelligence node. Application and database certification gates both apply. */
 export async function persistArbitraryDerivedIntelligenceNode(input: { userId: string; runId: string; executionId: string; definition: ArbitraryDerivedIntelligenceDefinition }): Promise<PersistedNode> {
   await requireCertifiedRun(input);
   const upstream = normalizeUpstream(input.definition.upstream);
@@ -31,24 +24,21 @@ export async function persistArbitraryDerivedIntelligenceNode(input: { userId: s
   if (!input.definition.derivationOperator.trim()) throw new Error("DERIVED_INTELLIGENCE_OPERATOR_REQUIRED");
   if (!input.definition.derivationVersion.trim()) throw new Error("DERIVED_INTELLIGENCE_VERSION_REQUIRED");
   if (!upstream.length && !input.definition.capabilityId) throw new Error("DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED");
-
   const upstreamIds = upstream.map((r) => r.nodeId);
-  const { data: upstreamRows, error: upstreamError } = upstream.length
-    ? await supabaseAdmin.from("iris_user_intelligence_nodes").select("id,node_hash,recursive_ancestry,recursive_depth").eq("user_id", input.userId).in("id", upstreamIds)
-    : { data: [], error: null };
+  const { data: upstreamRows, error: upstreamError } = upstream.length ? await supabaseAdmin.from("iris_user_intelligence_nodes").select("id,node_hash,recursive_ancestry,recursive_depth").eq("user_id", input.userId).in("id", upstreamIds) : { data: [], error: null };
   if (upstreamError) throw new Error(`DERIVED_INTELLIGENCE_UPSTREAM_LOOKUP_FAILED: ${upstreamError.message}`);
   if (!upstreamRows || upstreamRows.length !== upstreamIds.length) throw new Error("DERIVED_INTELLIGENCE_UPSTREAM_NOT_FOUND_OR_NOT_OWNED");
   const upstreamById = new Map(upstreamRows.map((row) => [row.id as string, row]));
   const recursiveAncestry = [...new Set([...upstreamIds, ...upstreamRows.flatMap((row) => Array.isArray(row.recursive_ancestry) ? row.recursive_ancestry : [])])].sort();
   const recursiveDepth = upstream.length ? 1 + Math.max(...upstreamRows.map((row) => typeof row.recursive_depth === "number" ? row.recursive_depth : 0)) : 0;
-  const outputHash = hash({ graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, capability_id: input.definition.capabilityId ?? null, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, evidence_state: input.definition.evidenceState, value: input.definition.value, as_of: input.definition.asOf ?? null, evidence_boundary: input.definition.evidenceBoundary ?? null, upstream: upstream.map((r) => ({ node_id: r.nodeId, role: r.role, source_field_path: r.sourceFieldPath ?? null, node_hash: upstreamById.get(r.nodeId)?.node_hash ?? null })) });
-  const provenance = { ...(input.definition.provenance ?? {}), graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, capability_id: input.definition.capabilityId ?? null, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, upstream_node_ids: upstreamIds, recursive_ancestry: recursiveAncestry, recursive_depth: recursiveDepth, output_hash: outputHash, root_node: upstream.length === 0, financial_values_created: false, provider_observations_created: false, money_movement_executed: false };
-  const nodePayload = { user_id: input.userId, run_id: input.runId, execution_id: input.executionId, node_type: "derived_intelligence", domain_key: null, capability_id: input.definition.capabilityId ?? null, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, evidence_state: input.definition.evidenceState, value: input.definition.value, confidence: null, as_of: input.definition.asOf ?? null, evidence_boundary: input.definition.evidenceBoundary ?? null, provenance, node_hash: outputHash, upstream_node_ids: upstreamIds, recursive_ancestry: recursiveAncestry, recursive_depth: recursiveDepth };
+  const nodeType = input.definition.nodeType ?? "intelligence";
+  const outputHash = hash({ graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, capability_id: input.definition.capabilityId ?? null, domain_key: input.definition.domainKey ?? null, node_type: nodeType, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, evidence_state: input.definition.evidenceState, value: input.definition.value, as_of: input.definition.asOf ?? null, evidence_boundary: input.definition.evidenceBoundary ?? null, upstream: upstream.map((r) => ({ node_id: r.nodeId, role: r.role, source_field_path: r.sourceFieldPath ?? null, node_hash: upstreamById.get(r.nodeId)?.node_hash ?? null })) });
+  const provenance = { ...(input.definition.provenance ?? {}), graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, capability_id: input.definition.capabilityId ?? null, domain_key: input.definition.domainKey ?? null, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, upstream_node_ids: upstreamIds, recursive_ancestry: recursiveAncestry, recursive_depth: recursiveDepth, output_hash: outputHash, root_node: upstream.length === 0, financial_values_created: false, provider_observations_created: false, money_movement_executed: false };
+  const nodePayload = { user_id: input.userId, run_id: input.runId, execution_id: input.executionId, node_type: nodeType, domain_key: input.definition.domainKey ?? null, capability_id: input.definition.capabilityId ?? null, intelligence_key: input.definition.intelligenceKey, intelligence_name: input.definition.intelligenceName, derivation_operator: input.definition.derivationOperator, derivation_version: input.definition.derivationVersion, evidence_state: input.definition.evidenceState, value: input.definition.value, confidence: null, as_of: input.definition.asOf ?? null, evidence_boundary: input.definition.evidenceBoundary ?? null, provenance, node_hash: outputHash, upstream_node_ids: upstreamIds, recursive_ancestry: recursiveAncestry, recursive_depth: recursiveDepth };
   const { error: nodeInsertError } = await supabaseAdmin.from("iris_user_intelligence_nodes").upsert(nodePayload, { onConflict: "user_id,node_hash", ignoreDuplicates: true });
   if (nodeInsertError) throw new Error(`DERIVED_INTELLIGENCE_NODE_PERSIST_FAILED: ${nodeInsertError.message}`);
   const { data: node, error: nodeSelectError } = await supabaseAdmin.from("iris_user_intelligence_nodes").select("id,capability_id,intelligence_key,node_hash,evidence_state").eq("user_id", input.userId).eq("node_hash", outputHash).single();
   if (nodeSelectError || !node) throw new Error(`DERIVED_INTELLIGENCE_NODE_RESOLVE_FAILED: ${nodeSelectError?.message || "node not found after persistence"}`);
-
   const edgeRows = upstream.map((r) => ({ user_id: input.userId, run_id: input.runId, from_node_id: r.nodeId, to_node_id: node.id, relation_type: "derives_from", evidence_state: input.definition.evidenceState, weight: null, explanation: { graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, role: r.role, source_field_path: r.sourceFieldPath ?? null, dependency_reference_present: true }, provenance: { source: "arbitrary_derived_intelligence", execution_id: input.executionId, upstream_node_hash: upstreamById.get(r.nodeId)?.node_hash ?? null, destination_output_hash: outputHash } }));
   if (edgeRows.length) { const { error: edgeError } = await supabaseAdmin.from("iris_user_intelligence_edges").upsert(edgeRows, { onConflict: "user_id,from_node_id,to_node_id,relation_type,run_id", ignoreDuplicates: true }); if (edgeError) throw new Error(`DERIVED_INTELLIGENCE_EDGE_PERSIST_FAILED: ${edgeError.message}`); }
   const compositionHash = hash({ graph_version: PERSISTED_INTELLIGENCE_GRAPH_VERSION, user_id: input.userId, run_id: input.runId, intelligence_key: input.definition.intelligenceKey, input_node_ids: upstreamIds, output_node_id: node.id, output_hash: outputHash });
