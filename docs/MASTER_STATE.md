@@ -1,190 +1,159 @@
 # Iris Master Project State
 
-> Authoritative continuity document. This file describes verified current repository/runtime state and never overrides direct live evidence. Continuity rules are defined in `docs/DOCUMENTATION_AUTHORITY.md`.
+> Authoritative continuity document. Direct live GitHub, Render, and Supabase evidence outranks this document. This file records the verified state so future work does not reconstruct an obsolete architecture.
 
 ## Current authority
 
 - Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Latest implementation commit in this workstream: `2f4a503e935f1e49833dca2d82cdc5e2d80866a0`
+- Current main tip verified during this workstream: `c00760cf8ace90571574ba0753a1831246261dd5`
 - Connected Supabase project: `uhcrdehjwaghqvydaqnn`
 - Current Render workspace: `tea-dai0jth42hec73araong`
-- Current scope: read-only intelligence; no money movement.
+- Frontend: `iris-frontend-cuy3.onrender.com`
+- Backend: `iris-backend-u60o.onrender.com`
+- Scope: read-only intelligence; no money movement.
 
 ## Architectural truth
 
 IRIS is **one complete hierarchy intelligence relational ontology financial life state ecosystem**.
 
-There are no two IRIS sides, no separate Financial Life side, no separate Intelligence side, and no separate data-free Education side.
-
-The hierarchy is:
+There are no two IRIS sides, no separate Financial Life side, no separate Intelligence side, and no separate data-free Education side. Every surface traverses or represents the same governed hierarchy.
 
 `IRIS → Financial-Life Reality/State → governed evidence → observed state → canonical Financial-Life State → relational ontology → intelligence → higher-order intelligence → recursive derived intelligence → features/reports/questions/explanations/education/workspaces → user`
 
-Every surface is a traversal or representation of the same hierarchy. Evidence state, derivation state, provenance, lineage, uncertainty, authorization, execution state, and certification/publication state determine what may be shown.
-
-Forward and reverse traversal are first-class requirements.
+Forward and reverse traversal are first-class. Evidence state, derivation state, provenance, lineage, uncertainty, authorization, execution state, and certification/publication state determine what may be shown.
 
 ## Provider/evidence boundary
 
-The specifically reconciled Plaid Sandbox → Supabase Item/data path is verified for the tested path. That result does not automatically certify every current Item or every future synchronization run.
+The specifically tested Plaid Sandbox → Supabase Item/data path remains verified for its exact tested boundary. That does not automatically certify every Item or future sync.
 
-The live user currently has multiple active Items. The current full-intelligence execution path therefore uses the independently governed canonical Item selected by the evidence-scope resolver; it does not silently combine Items when a canonical Item is available.
+The current canonical Sandbox Item used by the full-intelligence boundary has 14 observed accounts, 48 current observed transactions, 14 current balances, 3 current liabilities, and 7 observed provider domains. Statements is Domain 8 architecturally but is deferred until real banking.
 
-The latest current Item with seven observed provider domains has 14 accounts, 48 current observed transactions, 14 current observed balances and 3 current observed liabilities. Statements remains architecturally authoritative but deferred from the Sandbox evidence boundary until real banking.
+Actual Plaid Sandbox observations are allowed as governed Sandbox evidence. Fabricated AI/financial values are strictly prohibited.
 
-## Current intelligence runtime state
+## Runtime state observed after the latest audit
 
-The live database snapshot observed during the audit contained:
+Current live Supabase counts:
 
-- `iris_runs`: 20
-- `iris_execution_records`: 20
+- `iris_runs`: 22
+- `iris_execution_records`: 22
 - `iris_certifications`: 0
 - `iris_execution_outputs`: 0
-- persisted intelligence graph nodes: 0
-- persisted intelligence graph edges: 0
-- persisted user intelligence nodes: 0
-- persisted user intelligence edges: 0
-- persisted user intelligence compositions: 0
-- certified intelligence read model: 0
-- `iris_report_products`: 70
-- `iris_report_product_dependencies`: 267
+- `iris_intelligence_nodes`: 0
+- `iris_intelligence_edges`: 0
 - `iris_semantic_dependency_proofs`: 19
 
-Recent failed runs included `RECURSIVE_CAPABILITY_EXECUTION_FAILED` and `DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED`.
+The latest failed runs exposed a new, exact database contract defect after the earlier evidence-manifest fix:
 
-### Exact runtime defect found
+`SEMANTIC_DEPENDENCY_PROOF_PERSIST_FAILED: invalid input syntax for type uuid: "temporal"`
 
-The live Supabase audit proved that `iris_run_evidence` has an authoritative database trigger named `trg_expand_iris_run_evidence_raw_financial` that expands inserted Plaid product-observation evidence into typed raw financial evidence.
+The live schema showed `iris_semantic_dependency_proofs.consumed_dependency_ids` was incorrectly typed as `uuid[]`, while the authoritative capability graph uses semantic capability identifiers such as `temporal` and the application contract defines dependency IDs as strings.
 
-The current full-intelligence executor inserted the parent `provider_raw_observation` rows but then used only the IDs returned by that initial insert for its execution manifest, lineage, and recursive executor context. It did **not** re-read the trigger-expanded evidence set or recompute the evidence-manifest hash from that complete set.
+## Runtime fix completed
 
-The independent capability executor already contained the correct pattern: insert parent product observations, re-read complete `iris_run_evidence`, build the complete manifest, hash that manifest, and bind the complete evidence set to execution.
+The authoritative Supabase schema was corrected with migration `fix_semantic_dependency_id_type`:
 
-This mismatch is the actual verified full-intelligence evidence-binding defect.
+`iris_semantic_dependency_proofs.consumed_dependency_ids: uuid[] → text[]`
 
-### Current fix
+The migration was applied successfully and the live schema was re-read and verified as `_text` (`text[]`). No financial/provider data was fabricated or inserted.
 
-The current full-intelligence implementation now:
+This was the smallest dependency-complete correction because the failure occurred at the database type boundary, not in the capability semantics.
 
-1. inserts only the governed parent Plaid product observations;
-2. allows the authoritative database trigger to expand exact transaction/balance/liability evidence;
-3. re-reads the complete run-evidence set after expansion;
-4. binds all expanded evidence record IDs into the execution manifest;
-5. computes `evidence_manifest_hash` from the complete evidence manifest;
-6. updates the run's evidence manifest binding;
-7. passes the complete evidence IDs and manifest hash into recursive execution, lineage and arbitrary recursive composition; and
-8. serializes structured errors instead of reducing object errors to `[object Object]`.
+### Earlier evidence-binding fix remains in force
 
-The current live run evidence for the previously failed run already demonstrates the trigger behavior: 14 `provider_raw_balance`, 3 `provider_raw_liability`, 48 `provider_raw_transaction`, and 67 `provider_raw_observation` records were present for that run.
+The full-intelligence executor now:
 
-This code correction is **not yet an intelligence certification**. A fresh authenticated execution must prove the corrected full-intelligence path.
+1. inserts only governed parent Plaid product observations;
+2. lets the authoritative database trigger expand exact transaction/balance/liability evidence;
+3. re-reads the complete `iris_run_evidence` set;
+4. binds all expanded evidence IDs;
+5. recomputes the complete evidence-manifest hash;
+6. passes the complete evidence boundary into recursive execution and lineage; and
+7. preserves structured errors instead of reducing objects to `[object Object]`.
 
-## Current UI state
+A fresh authenticated full-intelligence execution is still required to prove that both runtime corrections work together. Certification remains **not achieved** until that run succeeds and passes every certification gate.
 
-Verified defects found in the prior audit were addressed in the current implementation:
+## User-experience defect fixed in this workstream
 
-- registered financial-life routes no longer intentionally collapse into the generic command surface;
-- `IrisWorkspaceSurface` now derives route-specific content from governed overview/intelligence/provider contracts;
-- derived values remain gated by certification;
-- unsupported routes are explicitly rejected;
-- navigation descriptions are visible rather than hidden;
-- route metrics, records, child navigation and truth-state messaging use the shared IRIS visual grammar;
-- Products and Reports remain independent concepts.
+A concrete routing defect was found in `frontend/src/App.tsx`.
 
-The frontend and backend both successfully deployed the current implementation through Render. Authenticated route-by-route traversal and every-control end-to-end proof are still required.
+Navigation generated hashes such as `#workspace/money/overview`, but `readIrisPage()` only recognized `#workspace/iris` and `#workspace/iris/...`. Consequently, navigating into non-Iris workspace destinations could appear to work momentarily but the application would resolve the route back to `iris` on hash synchronization/reload. This directly explains a major part of the reported “does not work to the end” experience.
 
-## Current Render state
+The route parser now accepts every `workspace/<registered-or-traversable-path>` route and preserves the exact path during hash synchronization and reload.
 
-Current authoritative services:
+The corrected frontend commit was deployed through Render. The subsequent continuity deployment containing that change is currently live.
 
-- `iris-backend-u60o.onrender.com` — Web Service, branch `main`.
-- `iris-frontend-cuy3.onrender.com` — Static Site, branch `main`.
+## Current UI requirements
 
-The latest Render deployments for the current workstream reached `live` status. Deployment success is not itself end-to-end certification.
+Every registered destination must have:
 
-An older Docker service remains in the workspace and must not be treated as authoritative unless independently verified.
+- its own correct function and visual hierarchy;
+- the correct governed source content;
+- real provider/evidence-backed observations where observed;
+- certified intelligence only when certification exists;
+- explicit insufficient/unsupported states otherwise;
+- working controls;
+- working forward navigation;
+- working reverse navigation;
+- provenance/explanation where applicable;
+- no fake financial or AI content;
+- no dead-end buttons;
+- no silent route substitution;
+- consistent IRIS cognition and visual language.
 
-## Current verification status
+Products and Reports are independent concepts:
 
-### Verified
-
-- Documentation authority/continuity protocol updated.
-- README architecture framing is the single-system hierarchy.
-- ROADMAP architecture framing is the single-system hierarchy.
-- Stale two-side/product-side terminology in the audited continuity documents was removed or superseded.
-- Plaid Sandbox → Supabase tested mapping path remains verified within its exact tested boundary.
-- Current canonical Item candidates were reconciled against current accounts/transactions/balances/liabilities/provider domains.
-- The actual full-intelligence evidence-binding defect was identified by reconciling source code with the live Supabase trigger and live run evidence.
-- Frontend route-specific workspace behavior corrected.
-- Navigation cognition/style defect corrected.
-- Frontend deployment passed.
-- Backend deployment passed.
-- Repository search found no `cognity` references.
-- Repository search found no matches for the audited fake/mock/sample/placeholder/hardcoded-data search terms.
-
-### Not yet certified
-
-- Fresh authenticated recursive full-intelligence execution after the evidence-binding fix.
-- Certified intelligence output materialization.
-- Full current multi-Item provider reconciliation as a user-level aggregate.
-- Complete route-by-route authenticated traversal.
-- Complete control-by-control interaction verification.
-- Complete visual/cognition verification across every screen and responsive state.
-- Full authenticated end-to-end journey.
-
-## Product/report rule
-
-Provider Products, IRIS Report Products, intelligence nodes, produced results, and certified results are independent concepts.
-
-`Provider Product count ≠ Report Product count ≠ produced result count ≠ certified result count`
+`Provider Product count ≠ IRIS Report Product count ≠ produced result count ≠ certified result count`
 
 No count is fabricated for visual symmetry.
+
+## Deployment state
+
+The frontend Render deployment for the route fix reached `live`. The backend Render deployment containing the evidence-binding/runtime code reached `live`; the latest continuity commit was subsequently deployed to the backend and is now `live` as well.
+
+Deployment success is not runtime certification.
+
+## Certification blockers still open
+
+1. Fresh authenticated recursive full-intelligence execution after the two runtime corrections.
+2. Successful materialization of `iris_execution_outputs` and intelligence graph state.
+3. Certification record creation and certified read-model publication.
+4. Complete authenticated route-by-route traversal.
+5. Complete control-by-control interaction verification.
+6. Complete visual/cognition verification across responsive states.
+7. Full authenticated end-to-end journey with forward and reverse lineage proof.
 
 ## Absolute anti-fabrication rule
 
 **Fake AI data is strictly prohibited.**
 
-Never create or present as financial truth:
-
-- fake AI-generated financial values;
-- fabricated users/accounts/transactions/balances/income/debt/spending;
-- fabricated provider observations;
-- invented report results;
-- invented outcomes;
-- invented probabilities/confidence values;
-- provider capability metadata represented as observation;
-- missing evidence represented as zero.
-
-Actual Plaid Sandbox observations are permitted only as explicitly governed Sandbox evidence. Technical mocks may isolate infrastructure tests but must never become production financial evidence.
+Never fabricate users, accounts, transactions, balances, income, debt, spending, provider observations, intelligence results, reports, outcomes, probabilities, confidence values, or missing evidence. Unknown is not zero. Provider capability availability is not provider observation. Plaid Sandbox records are acceptable only as governed Sandbox test evidence.
 
 ## Mandatory continuity protocol
 
 Before every material change:
 
-1. Read `docs/DOCUMENTATION_AUTHORITY.md`.
-2. Read the current README and ROADMAP.
-3. Read `MASTER_STATE.md`, `ARCHITECTURE.md`, `DECISIONS.md`, and `SESSION_HANDOFF.md`.
-4. Inspect exact current source files.
-5. Inspect the relevant live Render service/deployment.
-6. Inspect the relevant live Supabase schema/state.
-7. Identify the exact defect and dependency boundary.
-8. Make the smallest dependency-complete change that fixes the actual defect.
+1. Read `docs/DOCUMENTATION_AUTHORITY.md`, README, ROADMAP, MASTER_STATE, and SESSION_HANDOFF.
+2. Inspect the exact current source.
+3. Inspect the relevant live Render service/deployment.
+4. Inspect the relevant live Supabase schema/state.
+5. Identify the exact defect and dependency boundary.
+6. Make the smallest dependency-complete change.
 
 After every material change:
 
-1. Re-read every changed artifact.
+1. Re-read the changed artifact.
 2. Verify the resulting GitHub commit.
-3. Run applicable build/tests/static checks.
-4. Verify the affected Render deployment.
+3. Run applicable builds/tests/static checks.
+4. Verify Render deployment state.
 5. Verify affected Supabase state.
-6. Exercise the affected runtime path where authenticated execution is available.
-7. Reconcile forward and reverse lineage where applicable.
+6. Exercise the affected authenticated runtime path where credentials/session access permits.
+7. Reconcile forward/reverse lineage where applicable.
 8. Search for stale contradictory terminology.
-9. Update continuity documents with the actual verified state.
+9. Update continuity state with verified facts.
 10. Never claim more than the proven boundary.
 
 ## Definition of done
 
-IRIS is not done until the authenticated user can traverse the complete hierarchy through real governed evidence, canonical state, relational ontology, intelligence, recursive intelligence, reports/features/questions/explanations/education/scenarios/decisions/actions/outcomes/learning, with every route and control functioning, every factual result traceable backward where lineage exists, and no fabricated content anywhere.
+IRIS is not done until an authenticated user can traverse the complete hierarchy through governed evidence, canonical state, relational ontology, intelligence, recursive intelligence, reports/features/questions/explanations/education/scenarios/decisions/actions/outcomes/learning, with every route and control functioning, every factual result traceable backward where lineage exists, and no fabricated content anywhere.
