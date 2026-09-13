@@ -2,8 +2,8 @@
   "project": "Iris",
   "repository": "d77167635/iris",
   "branch": "main",
-  "head": "03fa9ca9f852ffbb507f97cf5705a7078a9ae1da",
-  "generated_at": "2026-09-13T09:58:26.158Z",
+  "head": "6223def87f63cba754d145e984e5b02115f71a91",
+  "generated_at": "2026-09-13T09:58:44.826Z",
   "continuity": {
     "documentation_authority": "docs/DOCUMENTATION_AUTHORITY.md",
     "master_state": "docs/MASTER_STATE.md",
@@ -22,8 +22,8 @@
     "reverse_traversal": true
   },
   "roadmap": {
-    "completed_items": 8,
-    "open_items": 80
+    "completed_items": 12,
+    "open_items": 27
   },
   "environment": {
     "render_workspace": "tea-dai0jth42hec73araong",
