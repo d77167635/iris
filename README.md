@@ -46,8 +46,6 @@ NO ARTIFICIAL FINAL LEVEL
 
 The 19 registered capabilities are **inside the hierarchy's executable intelligence vocabulary immediately after the eight domains**, but they are **not a fixed Level-3 list, not 19 hard-wired branches, and not a domain×capability matrix**. They are reusable operators/families that can occur at different depths, in different orders, in combinations, across domains, and recursively.
 
-This is consistent with the authoritative architecture: Level 3 onward is recursively generated intelligence, there is no predefined complete Level-3/4/5 list, and semantic depth is unbounded. Capability families are operators, not levels. fileciteturn1078file3L199-L225 fileciteturn1078file3L290-L326
-
 ## Structural hierarchy catalog
 
 The structural catalog is persisted in:
@@ -69,9 +67,7 @@ IRIS
   └── Statements
 ```
 
-There is **no fixed count of domain→capability relationships**. The previous `152` value came from a Cartesian implementation mistake: `8 domains × 19 capabilities = 152`. That number did not represent IRIS intelligence, lineage, applicability, or recursive possibility. It has been removed from the authoritative structural model.
-
-Capability applicability is determined at runtime from real governed evidence, domain state, dependencies, operator contracts, lineage, validation and usefulness. It can produce one relationship, many relationships, cross-domain relationships, repeated use at different depths, or no applicable relationship at all. The graph must not pre-create every theoretical combination.
+There is **no fixed count of domain→capability relationships**. The previous `152` value came from a Cartesian implementation mistake: `8 domains × 19 capabilities = 152`. That number does not represent IRIS intelligence, lineage, applicability, or recursive possibility. The graph does not pre-create every theoretical combination.
 
 ## Level 3+ recursive intelligence
 
@@ -99,54 +95,53 @@ new derived intelligence
 continue as deeply as justified
 ```
 
-A derived node may have multiple parents. Multiple domains may produce one higher-order node. Previously derived intelligence may become upstream intelligence for a later derivation. This is a graph, not a finite tree. fileciteturn1078file3L205-L225
+A derived node may have multiple parents. Multiple domains may produce one higher-order node. Previously derived intelligence may become upstream intelligence for a later derivation. This is a graph, not a finite tree.
 
-## Real user intelligence
+## Current certified state — 2026-09-13
 
-Structural catalog ≠ user intelligence.
+The first legitimate user hierarchy has now been certified and published.
 
-User-specific hierarchy intelligence remains subject to the hard certification boundary:
+### Level 1
 
-```text
-REAL SUPABASE / PLAID EVIDENCE
-        ↓
-EVIDENCE BOUNDARY
-        ↓
-LEVEL 1 GOVERNANCE / VALIDATION
-        ↓
-LEVEL 2 DOMAIN ACCESS
-        ↓
-APPLICABLE LEVEL 3+ INTELLIGENCE
-        ↓
-RECURSIVE INTELLIGENCE
-        ↓
-SEMANTIC DEPENDENCY VALIDATION
-        ↓
-EXECUTION OUTPUT
-        ↓
-VALIDATION
-        ↓
-CERTIFICATION
-        ↓
-AUTHORITATIVE USER HIERARCHY MATERIALIZATION
-```
+- 192 authoritative evidence records
+- 193 execution-lineage records
+- 13/13 Level 1 validation checks PASS
+- 0 financial intelligence nodes/edges/compositions at Level 1
+- publication status: `NOT_STARTED`
 
-No failed or uncertified execution may create authoritative user hierarchy nodes, edges, compositions or intelligence-node lineage. The structural catalog is architecture metadata, not fabricated financial content.
+Level 1 certification hash:
+`6b23139e37dd390be34f3895020e0bb3db0c08eed143b6aa44b27006116125a1`
 
-## Current authoritative user state
+### Level 2
 
-After removal of pre-certification artifacts, the legitimate user-specific state remains:
+Certified and published run:
 
-```text
-iris_user_intelligence_nodes          = 0
-iris_user_intelligence_edges         = 0
-iris_user_intelligence_compositions  = 0
-hierarchy-intelligence lineage       = 0
-iris_certifications                  = 0
-published certified intelligence     = 0
-```
+- run: `5a0af473-f2a9-43a4-bbe4-7b0b04aa5df3`
+- execution: `9586ea77-9d14-4c1f-8da6-86b99ab77c3c`
+- run status: `CERTIFIED`
+- execution state: `EXECUTED`
+- validation: `PASS`
+- certification: `CERTIFIED`
+- hierarchy publication: `HIERARCHY_PUBLISHED`
+- persisted intelligence nodes: `10`
+- persisted relationships/edges: `4`
+- persisted compositions: `10`
+- execution lineage: `340`
 
-This is intentional. The system must earn its first authoritative user hierarchy through a real governed run and certification.
+The Level 2 evidence boundary is the exact certified Level 1 boundary. The current Level 2 implementation has explicit cross-domain intelligence for Transactions × Balance and Transactions × Liabilities; it must not be described as implementing every theoretical domain combination.
+
+The transaction cash-flow output is fully field-lineage reconciled:
+
+- 48 posted transactions selected by the certified evidence gate
+- 6 negative transactions contributing `1512.66` to IRIS inflow
+- 42 positive transactions contributing `33448.38` to IRIS outflow
+- calculated net cash flow: `-31935.72`
+- 48 transaction-level lineage records for posted transaction count
+- 48 transaction-level lineage records for net cash flow
+- 6 transaction-level lineage records for inflow
+- 42 transaction-level lineage records for outflow
+
+These are real governed Supabase/Plaid Sandbox observations and calculations from the certified evidence boundary, not fabricated financial data.
 
 ## Evidence truth
 
