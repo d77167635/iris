@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./api/supabase";
 import { Auth } from "./components/Auth";
-import { IrisRawPlaidSupabaseSurface } from "./components/IrisRawPlaidSupabaseSurface";
+import { IrisLevel1HierarchySurface } from "./components/IrisRawPlaidSupabaseSurface";
 import "./iris-ui.css";
 
 function authCallbackKind() { return new URLSearchParams(window.location.search).get("iris_auth"); }
@@ -28,26 +28,18 @@ export default function App() {
       if (recoveryUrl && data.session) setRecovery(true);
       if (callback === "confirmed" && data.session) clearAuthCallback();
       setCheckedAuth(true);
-    }).catch(() => {
-      if (active) {
-        setSession(null);
-        setCheckedAuth(true);
-      }
-    });
+    }).catch(() => { if (active) { setSession(null); setCheckedAuth(true); } });
     const { data: listener } = supabase.auth.onAuthStateChange((event, newSession) => {
       if (!active) return;
       if (event === "PASSWORD_RECOVERY") setRecovery(true);
       setSession(newSession);
       if (event === "SIGNED_IN" && authCallbackKind() === "confirmed") clearAuthCallback();
     });
-    return () => {
-      active = false;
-      listener.subscription.unsubscribe();
-    };
+    return () => { active = false; listener.subscription.unsubscribe(); };
   }, []);
 
   if (!checkedAuth) return <main style={{ minHeight: "100dvh", background: "#050609" }} />;
   if (recovery && session) return <Auth recovery onRecoveryComplete={() => { setRecovery(false); clearAuthCallback(); }} />;
   if (!session) return <Auth />;
-  return <IrisRawPlaidSupabaseSurface />;
+  return <IrisLevel1HierarchySurface />;
 }
