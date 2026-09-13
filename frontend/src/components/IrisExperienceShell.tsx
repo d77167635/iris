@@ -12,7 +12,8 @@ const navigation: IrisJourneySurface[] = [
   { page: "iris/reasoning", label: "Understand", description: "Relationships, explanations and investigations" },
   { page: "iris/evidence", label: "Evidence", description: "How Iris knows and traces its sources" },
   { page: "iris/intelligence", label: "Intelligence", description: "Hierarchy, graph, reasoning and recursion" },
-  { page: "iris/catalog", label: "Reports", description: "User report inventory and report definitions" },
+  { page: "iris/reports", label: "Reports", description: "Produced report results" },
+  { page: "iris/catalog", label: "Report Catalog", description: "Report definitions and activation preferences" },
   { page: "iris/scenarios", label: "Scenarios", description: "Explicit hypothetical states" },
   { page: "iris/decisions", label: "Decisions", description: "Choices, tradeoffs and consequences" },
   { page: "iris/action", label: "Action", description: "Action-oriented results without money movement" },
@@ -25,7 +26,7 @@ const journey = [
   { page: "iris/evidence", label: "Evidence" },
   { page: "iris/reasoning", label: "Understand" },
   { page: "iris/intelligence", label: "Intelligence" },
-  { page: "iris/catalog", label: "Reports" },
+  { page: "iris/reports", label: "Reports" },
   { page: "iris/scenarios", label: "Scenario" },
   { page: "iris/decisions", label: "Decide" },
   { page: "iris/action", label: "Action" },
@@ -33,7 +34,7 @@ const journey = [
 ];
 
 export function IrisExperienceShell({ page, go, children }: Props) {
-  const active = navigation.find((item) => item.page === page)?.page ?? (page.startsWith("iris/intelligence/") ? "iris/intelligence" : "iris");
+  const active = navigation.find((item) => item.page === page)?.page ?? (page.startsWith("iris/intelligence/") ? "iris/intelligence" : page === "iris/catalog" ? "iris/catalog" : page === "iris/reports" ? "iris/reports" : "iris");
   const workspaceNodes = flattenWorkspaceRegistry();
   return <div className="iris-experience-shell">
     <header className="ies-topbar">
