@@ -20,7 +20,8 @@ export function IrisFinancialContext({ page, go }: Props) {
   const creditAccounts = accounts.filter((a: any) => a.type === "credit" && a.current_balance != null);
   const liquid = liquidAccounts.length ? liquidAccounts.reduce((s: number, a: any) => s + Number(a.current_balance), 0) : null;
   const debt = creditAccounts.length ? creditAccounts.reduce((s: number, a: any) => s + Number(a.current_balance), 0) : null;
-  const observed = DOMAINS.filter(d => (surface?.products ?? []).some((p: any) => (p.key === d || p.product === d) && p.status === "observed")).length;
+  const surfaceAvailable = surface !== null;
+  const observed = surfaceAvailable ? DOMAINS.filter(d => (surface?.products ?? []).some((p: any) => (p.key === d || p.product === d) && p.status === "observed")).length : null;
   const label = focusLabel(page);
   return <section className="iris-surface" aria-label="Live financial-life context">
     <div className="eyebrow">LIVE FINANCIAL-LIFE CONTEXT · {label} <button type="button" onClick={() => go("iris")}>Open Financial Life →</button></div>
@@ -29,7 +30,7 @@ export function IrisFinancialContext({ page, go }: Props) {
       <button className="iris-surface-card" type="button" onClick={() => go("iris/decisions")}><span>Revolving debt</span><strong>{loading ? "…" : money(debt)}</strong><small>{creditAccounts.length ? `${creditAccounts.length} observed credit account${creditAccounts.length === 1 ? "" : "s"}` : "No observed revolving-debt balance"}</small></button>
       <button className="iris-surface-card" type="button" onClick={() => go("iris/state")}><span>Accounts</span><strong>{loading ? "…" : accounts.length || "—"}</strong><small>Persisted provider-linked accounts</small></button>
       <button className="iris-surface-card" type="button" onClick={() => go("iris/behavior")}><span>Recent activity</span><strong>{loading ? "…" : transactions.length || "—"}</strong><small>Observed transactions</small></button>
-      <button className="iris-surface-card" type="button" onClick={() => go("iris/evidence")}><span>Evidence domains</span><strong>{loading ? "…" : `${observed}/${DOMAINS.length}`}</strong><small>Observed provider domains</small></button>
+      <button className="iris-surface-card" type="button" onClick={() => go("iris/evidence")}><span>Evidence domains</span><strong>{loading ? "…" : observed == null ? "—" : `${observed}/${DOMAINS.length}`}</strong><small>{surfaceAvailable ? "Observed provider domains" : "Provider evidence unavailable"}</small></button>
     </div>
   </section>;
 }
