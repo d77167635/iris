@@ -17,8 +17,11 @@ import "./iris-ui.css";
 
 function readIrisPage() {
   const hash = window.location.hash.replace(/^#/, "");
-  if (hash.startsWith("workspace/iris/")) return hash.slice("workspace/".length) || "iris";
-  if (hash === "workspace/iris") return "iris";
+  if (hash === "workspace/iris" || hash === "workspace/iris/") return "iris";
+  if (hash.startsWith("workspace/")) {
+    const page = hash.slice("workspace/".length);
+    return page || "iris";
+  }
   return "iris";
 }
 function authCallbackKind() { return new URLSearchParams(window.location.search).get("iris_auth"); }
