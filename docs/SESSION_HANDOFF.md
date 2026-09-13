@@ -7,7 +7,7 @@ This file is the compact bridge between sessions. It reflects verified repositor
 - Product: **IRIS**
 - Repository: `d77167635/iris`
 - Branch: `main`
-- Current main workstream includes the verified route fix and runtime schema correction.
+- Current main workstream includes the verified route fix, runtime schema correction, and internal RPC privilege hardening.
 - Continuity protocol: `docs/DOCUMENTATION_AUTHORITY.md`
 - Connected Supabase: `uhcrdehjwaghqvydaqnn`
 - Current Render workspace: `tea-dai0jth42hec73araong`
@@ -42,6 +42,12 @@ A fresh audit exposed the next exact runtime defect:
 The live schema showed `iris_semantic_dependency_proofs.consumed_dependency_ids` was `uuid[]`, while capability dependency identifiers are semantic text IDs such as `temporal`. The schema was corrected with the applied migration `fix_semantic_dependency_id_type`, changing the column to `text[]`. The live schema was re-read and verified as `_text`.
 
 No financial/provider data was fabricated or inserted during the correction.
+
+### Internal RPC security correction
+
+Live Supabase security advisors identified two internal `SECURITY DEFINER` functions exposed to `anon` and `authenticated`. Their privileges were corrected so both functions are executable by `service_role` only. Live privilege queries verified `anon=false`, `authenticated=false`, `service_role=true` for both functions.
+
+The remaining security-advisor finding is Supabase Auth leaked-password protection being disabled. The currently available database tool surface does not expose that Auth setting, so it remains an explicit environment-level blocker rather than being falsely marked complete.
 
 ### Current certification state
 
