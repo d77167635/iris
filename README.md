@@ -6,43 +6,132 @@ IRIS is **one complete hierarchy intelligence relational ontology financial life
 
 There are no two sides, no separate Financial Life side and Intelligence side, and no separate data-free Intelligence/Education side. Financial Life, Evidence, Understand, Intelligence, Reports, Scenarios, Decisions, Action, Outcomes, Connect, questions, explanations, education and workspaces are traversal surfaces of the same governed hierarchy.
 
-## The complete hierarchy
+## The authoritative hierarchy
+
+The structural hierarchy now has an explicit, governed Level 3 capability layer. The Level 3 catalog is structural ontology only. It creates no user financial observations and is never treated as financial evidence.
 
 ```text
-REAL FINANCIAL-LIFE REALITY
-        ↓
-PROVIDER / USER / AUTHORITATIVE EVIDENCE
-        ↓
-OBSERVED STATE
-        ↓
-CANONICAL FINANCIAL-LIFE STATE
-        ↓
-RELATIONAL ONTOLOGY
-        ↓
-TEMPORAL / STATISTICAL / BEHAVIORAL / CAUSAL INTELLIGENCE
-        ↓
-RISK / OPPORTUNITY / PREDICTION / SCENARIO
-        ↓
-DECISION / CONSEQUENCE / OUTCOME / LEARNING
-        ↓
-CROSS-DOMAIN INTELLIGENCE
-        ↓
-HIGHER-ORDER INTELLIGENCE
-        ↓
-RECURSIVE DERIVED INTELLIGENCE
-        ↓
-REPORTS / FEATURES / QUESTIONS / EXPLANATIONS / EDUCATION / WORKSPACES
-        ↓
-USER
+LEVEL 1
+IRIS
+MASTER INTELLIGENCE / MASTER GOVERNOR
+        │
+        ▼
+LEVEL 2
+8 AUTHORITATIVE DOMAINS
+        │
+        ├── Authentication
+        ├── Transactions
+        ├── Balance
+        ├── Identity
+        ├── Assets
+        ├── Liabilities
+        ├── Investments
+        └── Statements
+        │
+        ▼
+LEVEL 3
+19 REGISTERED INTELLIGENCE CAPABILITIES
+        │
+        ├── Temporal
+        ├── Financial Life State
+        ├── Relational Ontology
+        ├── Analysis
+        ├── Behavioral
+        ├── Pattern
+        ├── Relationship
+        ├── Anomaly
+        ├── Causal
+        ├── Predictive
+        ├── Scenario
+        ├── Decision
+        ├── Recommendation
+        ├── Risk
+        ├── Opportunity
+        ├── Consequence
+        ├── Outcome
+        ├── Learning
+        └── Emergent
+        │
+        ▼
+LEVEL 4+
+RECURSIVE HIERARCHY INTELLIGENCE
+        │
+        ├── domain intelligence
+        ├── subdomain intelligence
+        ├── entity intelligence
+        ├── relationship intelligence
+        ├── derived intelligence
+        ├── cross-domain compositions
+        ├── higher-order intelligence
+        └── further recursively derived intelligence
 ```
 
-The hierarchy is a graph, not a finite tree or fixed list of pages. It supports forward traversal and exact reverse traversal wherever persisted lineage exists. There is no artificial semantic depth ceiling.
+The 19 capabilities are therefore **inside the hierarchy immediately after the eight authoritative domains**. They are not a separate architecture and they are not a semantic depth ceiling.
 
-## Current authoritative state — 2026-09-13
+Each Level 3 capability applies across the authoritative domains. For example, Temporal can operate on Transactions, Balance, Identity, Assets, Liabilities, Investments and any other domain where governed evidence supports it. The same applies to the other registered capabilities. Domain-to-capability applicability is represented explicitly in the hierarchy catalog.
 
-**Capability infrastructure exists. Authoritative persisted hierarchy intelligence does not yet exist.**
+Level 4 and deeper intelligence is not a fixed list. It is generated only from real governed evidence and legitimately derived upstream intelligence. The semantic hierarchy has no artificial maximum depth.
 
-After removal of pre-certification artifacts, the legitimate current state is:
+## Structural hierarchy catalog
+
+The authoritative structural catalog is persisted in:
+
+- `public.iris_hierarchy_catalog_nodes`
+- `public.iris_hierarchy_catalog_edges`
+
+The catalog contains only IRIS structural definitions:
+
+```text
+IRIS
+  → 8 authoritative domains
+      → 19 registered intelligence capabilities
+```
+
+There are 8 structural `contains` edges from IRIS to the domains and 152 structural `applies_to` edges connecting the 19 capabilities to the 8 domains.
+
+These are ontology definitions, not user financial observations.
+
+## Real user intelligence
+
+Structural catalog ≠ user intelligence.
+
+User-specific hierarchy intelligence remains subject to the hard certification boundary:
+
+```text
+REAL SUPABASE / PLAID EVIDENCE
+        ↓
+EVIDENCE BOUNDARY
+        ↓
+LEVEL 1 GOVERNANCE / VALIDATION
+        ↓
+LEVEL 2 DOMAIN ACCESS
+        ↓
+LEVEL 3 CAPABILITY EXECUTION
+        ↓
+RECURSIVE INTELLIGENCE
+        ↓
+SEMANTIC DEPENDENCY VALIDATION
+        ↓
+EXECUTION OUTPUT
+        ↓
+VALIDATION
+        ↓
+CERTIFICATION
+        ↓
+AUTHORITATIVE USER HIERARCHY MATERIALIZATION
+        ↓
+NODES / EDGES / COMPOSITIONS / LINEAGE
+        ↓
+CERTIFIED INTELLIGENCE
+```
+
+No failed or uncertified execution may create authoritative user hierarchy nodes, edges, compositions or intelligence-node lineage. The database enforces this boundary independently of application code.
+
+A structural catalog entry must never be presented as though it were a user's financial fact.
+
+## Current authoritative user state
+
+After removal of pre-certification artifacts, the legitimate user-specific state remains:
 
 ```text
 iris_user_intelligence_nodes          = 0
@@ -53,45 +142,44 @@ iris_certifications                  = 0
 published certified intelligence     = 0
 ```
 
-This is intentional and correct. It means IRIS has not yet successfully completed a real post-correction run through certification and materialized its first authoritative hierarchy.
+This is intentional. The system must earn its first authoritative user hierarchy through a real governed run and certification. The presence of the structural hierarchy catalog does not change that fact.
 
-**Do not describe capability code, planned graph structure, or tests as persisted hierarchy intelligence.**
+## Execution model
 
-## Current certification boundary
+The 19 capabilities are executable intelligence operators/families within the hierarchy. Their persisted contracts remain in `public.iris_capability_contracts`.
 
-The only permitted hierarchy write sequence is:
+The capability planner now resolves both:
+
+1. the executable capability dependency graph; and
+2. the authoritative IRIS hierarchy catalog.
+
+A full-intelligence request therefore cannot silently execute a capability that is absent from the Level 3 hierarchy catalog, and a Level 3 catalog capability cannot silently exist without an executable governed capability contract.
+
+## Recursive intelligence
+
+Recursive intelligence begins immediately at Level 2 when governed evidence makes a domain eligible. It does not wait for all eight domains to finish as one monolithic batch.
+
+The recursion model is:
 
 ```text
-REAL SUPABASE / PLAID EVIDENCE
-        ↓
-EVIDENCE BOUNDARY
-        ↓
-CAPABILITY PLANNING
-        ↓
-RECURSIVE COMPUTATION
-        ↓
-SEMANTIC DEPENDENCY VALIDATION
-        ↓
-EXECUTION OUTPUT
-        ↓
-VALIDATION
-        ↓
-CERTIFICATION
-        ↓
-AUTHORITATIVE HIERARCHY MATERIALIZATION
-        ↓
-NODES / EDGES / COMPOSITIONS / LINEAGE
-        ↓
-CERTIFIED INTELLIGENCE
-        ↓
-UNIFIED IRIS SURFACES
+Domain
+  ↓
+Subdomain
+  ↓
+Entity
+  ↓
+Relationship
+  ↓
+Derived intelligence
+  ↓
+Higher-order intelligence
+  ↓
+Cross-domain composition
+  ↓
+Further recursive intelligence
 ```
 
-Any authoritative hierarchy write before certification is a defect. Database certification guards enforce this boundary independently of application code.
-
-The recursive executor no longer receives a hierarchy-node persistence callback. Arbitrary recursive composition materialization independently checks for the exact certified run. The prior pre-certification hierarchy artifacts were purged.
-
-The current backend build is still required to pass the complete test suite and deploy successfully before a new authenticated runtime certification can be claimed.
+Runtime resource budgets may limit one execution's materialization. They are operational limits, not semantic limits on what IRIS can represent.
 
 ## Evidence truth
 
@@ -177,11 +265,15 @@ Never manufacture or present as user truth:
 
 Actual Plaid Sandbox observations are allowed as Sandbox test evidence only and must remain explicitly Sandbox evidence. Technical test mocks cannot become production financial evidence.
 
+Structural ontology definitions such as the IRIS root, eight domains, and 19 capability names are architecture metadata, not fabricated financial data. They must never be rendered as observed financial content.
+
 When evidence is missing, IRIS uses truthful insufficient-evidence, unavailable, deferred, unknown, or not-observed states.
 
 ## UI and user journey
 
 The UI is part of the hierarchy. It is not a second architecture.
+
+The intelligence read path now exposes the governed hierarchy catalog alongside certified user intelligence. This lets the UI render the actual structural hierarchy without inventing user financial content.
 
 Any IRIS surface may expose any supported portion of the hierarchy when governed evidence and legitimate derivation permit it. User-specific content is not prohibited from an intelligence or education surface merely because of the surface name.
 
@@ -198,39 +290,3 @@ Every route and control must be backed by a real supported behavior and truthful
 The full proof chain is:
 
 `Architecture Defined → Contract Defined → Schema Implemented → Runtime Implemented → Independently Executable → Evidence Verified → Exact Evidence Boundary Verified → Semantic Lineage Verified → Product/Report Defined → Product/Report User-Controlled → Product/Report Surfaced → Interaction Verified → Deployment Verified → End-to-End Certified`
-
-A document, code path, table, endpoint, component, build, deployment or persisted row is not certification by itself.
-
-## Current next gate
-
-1. Complete the backend test/build gate.
-2. Deploy the corrected backend.
-3. Run one real authenticated execution against the governed Supabase/Plaid evidence boundary.
-4. Prove execution output persistence.
-5. Prove validation persistence.
-6. Prove certification persistence.
-7. Prove first post-certification hierarchy materialization.
-8. Reconcile nodes, edges, compositions and exact lineage.
-9. Prove reverse traversal back to evidence.
-10. Make all IRIS surfaces consume the same authoritative hierarchy.
-11. Only then claim end-to-end hierarchy intelligence is operational.
-
-Until these gates pass, the correct state is **not yet certified**.
-
-## Read-only boundary
-
-Current IRIS scope is read-only. No ACH, RTP, FedNow, card movement, transfer, withdrawal, trade, deposit or other money movement is part of the current intelligence product.
-
-Round-Ups remain a read-only/simulation analytical feature and are not the definition of IRIS intelligence.
-
-## Repository authority
-
-See:
-
-- `ROADMAP.md` — engineering roadmap and proof state.
-- `docs/ARCHITECTURE.md` — canonical architecture.
-- `docs/DOCUMENTATION_AUTHORITY.md` — documentation and continuity authority.
-- `docs/IRIS_SCREEN_MAP.md` — consumer traversal/surface map.
-- `docs/CHANGELOG.md` — implementation chronology.
-
-Documentation never overrides live runtime/database proof.
