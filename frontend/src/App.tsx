@@ -10,6 +10,7 @@ import { IrisActionOutcome } from "./components/IrisActionOutcome";
 import { IrisEvidenceAccess } from "./components/IrisEvidenceAccess";
 import { IrisExperienceShell } from "./components/IrisExperienceShell";
 import { IrisWorkspaceSurface } from "./components/IrisWorkspaceSurface";
+import { IrisScenarioSurface } from "./components/IrisScenarioSurface";
 import { findWorkspace } from "./components/irisWorkspaceRegistry";
 import "./iris-command-deck.css";
 import "./components/IrisExperienceShell.css";
@@ -27,12 +28,13 @@ function readIrisPage() {
 function authCallbackKind() { return new URLSearchParams(window.location.search).get("iris_auth"); }
 function isRecoveryUrl() { const p = new URLSearchParams(window.location.search); const h = new URLSearchParams(window.location.hash.replace(/^#/, "")); return p.get("iris_auth") === "recovery" || p.get("type") === "recovery" || h.get("type") === "recovery" || p.has("code"); }
 function clearAuthCallback() { window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}`); }
+function canonicalPage(page: string) { return page === "iris/simulation" ? "iris/scenarios" : page; }
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
   const [recovery, setRecovery] = useState(isRecoveryUrl());
-  const [irisPage, setIrisPage] = useState(readIrisPage());
+  const [irisPage, setIrisPage] = useState(canonicalPage(readIrisPage()));
   const [signingOut, setSigningOut] = useState(false);
 
   useEffect(() => {
@@ -54,7 +56,7 @@ export default function App() {
       setSession(newSession);
       if (event === "SIGNED_IN" && authCallbackKind() === "confirmed") { clearAuthCallback(); setIrisPage("iris"); }
     });
-    const sync = () => setIrisPage(readIrisPage());
+    const sync = () => setIrisPage(canonicalPage(readIrisPage()));
     window.addEventListener("hashchange", sync);
     window.addEventListener("popstate", sync);
     return () => {
@@ -66,9 +68,10 @@ export default function App() {
   }, []);
 
   const navigate = (page = "iris") => {
-    const hash = page === "iris" ? "#workspace/iris" : `#workspace/${page}`;
+    const canonical = canonicalPage(page);
+    const hash = canonical === "iris" ? "#workspace/iris" : `#workspace/${canonical}`;
     if (window.location.hash !== hash) window.location.hash = hash.slice(1);
-    else setIrisPage(page);
+    else setIrisPage(canonical);
   };
 
   const signOut = async () => {
@@ -85,7 +88,8 @@ export default function App() {
 
   const account = <div className="ia-account-control"><span aria-label="Signed-in account" className="ia-account-email">{session.user.email ?? "Signed in"}</span><button aria-label="Sign out" type="button" onClick={() => void signOut()} disabled={signingOut}>{signingOut ? "Signing out…" : "Sign out"}</button></div>;
   const isIntelligencePage = irisPage === "iris/intelligence" || irisPage.startsWith("iris/intelligence/");
-  const isSpecialPage = irisPage === "iris/connect" || irisPage === "iris/catalog" || irisPage === "iris/action" || irisPage === "iris/outcomes" || isIntelligencePage || irisPage === "iris/behavior" || irisPage === "iris/reasoning" || irisPage === "iris/evidence" || irisPage === "iris/state";
+  const isScenarioPage = irisPage === "iris/scenarios";
+  const isSpecialPage = irisPage === "iris/connect" || irisPage === "iris/catalog" || irisPage === "iris/action" || irisPage === "iris/outcomes" || isIntelligencePage || isScenarioPage || irisPage === "iris/behavior" || irisPage === "iris/reasoning" || irisPage === "iris/evidence" || irisPage === "iris/state";
   const isRegisteredWorkspace = Boolean(findWorkspace(irisPage));
 
   let content;
@@ -94,6 +98,7 @@ export default function App() {
   else if (irisPage === "iris/action") content = <IrisActionOutcome mode="action" go={navigate} />;
   else if (irisPage === "iris/outcomes") content = <IrisActionOutcome mode="outcomes" go={navigate} />;
   else if (isIntelligencePage) content = <IrisIntelligenceSurface page={irisPage} go={navigate} />;
+  else if (isScenarioPage) content = <IrisScenarioSurface go={navigate} />;
   else if (irisPage === "iris") content = <IrisFinancialLifeJourney go={navigate} />;
   else if (isSpecialPage) content = <IrisCommandSurface page={irisPage} go={navigate} />;
   else if (isRegisteredWorkspace) content = <IrisWorkspaceSurface page={irisPage} go={navigate} />;
