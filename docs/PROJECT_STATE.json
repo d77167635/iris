@@ -2,71 +2,32 @@
   "project": "Iris",
   "repository": "d77167635/iris",
   "branch": "main",
-  "head_before_this_update": "e0964d4c8ebbc670be734ef9638cff9c5e3a1090",
+  "head": "6527ae5aa00947798f44a7f76fb00a31a46f0295",
+  "generated_at": "2026-09-13T00:07:33.745Z",
   "continuity": {
-    "documentation_authority": "docs/DOCUMENTATION_AUTHORITY.md",
     "master_state": "docs/MASTER_STATE.md",
     "architecture": "docs/ARCHITECTURE.md",
     "decisions": "docs/DECISIONS.md",
-    "roadmap": "ROADMAP.md",
+    "roadmap": "docs/ROADMAP.md",
     "session_handoff": "docs/SESSION_HANDOFF.md",
-    "source_of_truth": "current GitHub main plus directly verified Render and Supabase state; prior chat is context only"
+    "source_of_truth": "current GitHub main commit; continuity documents describe verified state and must not override live repository state"
   },
-  "architecture": {
-    "model": "one complete hierarchy intelligence relational ontology financial life state ecosystem",
-    "two_side_architecture": false,
-    "separate_data_free_intelligence_side": false,
-    "semantic_depth_ceiling": false,
-    "forward_traversal": true,
-    "reverse_traversal": true
+  "roadmap": {
+    "completed_items": 0,
+    "open_items": 145
   },
-  "environment": {
-    "render_workspace": "tea-dai0jth42hec73araong",
-    "backend_service": "srv-dai1jieq1p3s73am2a40",
-    "backend_url": "https://iris-backend-u60o.onrender.com",
-    "frontend_service": "srv-dai1c9m1egvs73d1aiog",
-    "frontend_url": "https://iris-frontend-cuy3.onrender.com",
-    "supabase_project": "uhcrdehjwaghqvydaqnn",
-    "status": "active_current_environment"
-  },
-  "current_verified_boundary": {
-    "plaid_sandbox_to_supabase_tested_path": true,
-    "entire_multi_item_population_certified": false,
-    "read_only": true,
-    "money_movement": false,
-    "statements_sandbox_execution": false
-  },
-  "live_runtime_observation": {
-    "iris_runs": 20,
-    "iris_execution_records": 20,
-    "iris_certifications": 0,
-    "iris_execution_outputs": 0,
-    "iris_intelligence_nodes": 0,
-    "iris_intelligence_edges": 0,
-    "iris_user_intelligence_nodes": 0,
-    "iris_user_intelligence_edges": 0,
-    "iris_user_intelligence_compositions": 0,
-    "iris_certified_intelligence_read_model": 0,
-    "iris_report_products": 70,
-    "iris_report_product_dependencies": 267,
-    "iris_semantic_dependency_proofs": 19,
-    "recent_full_intelligence_failures": [
-      "RECURSIVE_CAPABILITY_EXECUTION_FAILED",
-      "DERIVED_INTELLIGENCE_UPSTREAM_REQUIRED"
-    ],
-    "current_runtime_fix": "full-intelligence execution now re-reads trigger-expanded run evidence and binds the complete evidence manifest/hash before recursive execution"
+  "environment_transition": {
+    "status": "in_transition",
+    "render": "old Render services are being replaced; new service is not yet connected",
+    "supabase": "current Supabase remains connected to the old environment and is not yet the clean-slate production database",
+    "plaid": "fresh production-authoritative observations are not established until the environment transition and reset are complete"
   },
   "rules": [
     "No fabricated financial data",
-    "No fake AI financial data",
     "Provider observations are evidence, not intelligence",
     "Unknown is not zero",
-    "Readiness, observation, certification, normalization, consumption, and use remain distinct",
-    "Products and Reports are independent counts",
+    "Readiness is distinct from publication",
     "No money movement in the current scope",
-    "No blind changes",
-    "Audit before and after every material change",
-    "Never claim certification without direct runtime proof"
-  ],
-  "next_block": "Run a fresh authenticated full-intelligence execution against the current canonical Item, verify the expanded evidence manifest/hash and recursive lineage/output, then complete authenticated route/control traversal and final end-to-end certification."
+    "Build by capability, not artifact count"
+  ]
 }
