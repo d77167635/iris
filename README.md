@@ -2,179 +2,100 @@
 
 **IRIS is a Relational Financial Intelligence Operating System.**
 
-IRIS is **one complete hierarchy intelligence relational ontology financial life state ecosystem**. There are no two sides, no two products, no separate Financial Life side and Intelligence side, and no separate educational data boundary.
+IRIS is **one complete hierarchy intelligence relational ontology financial life state ecosystem**.
 
-The complete system is one traversable graph:
+There are no two sides, no separate Financial Life side and Intelligence side, and no separate data-free Intelligence/Education side. Financial Life, Evidence, Understand, Intelligence, Reports, Scenarios, Decisions, Action, Outcomes, Connect, questions, explanations, education and workspaces are traversal surfaces of the same governed hierarchy.
 
-```text
-IRIS
-  ↓
-Financial-Life Reality
-  ↓
-Provider / User / Authoritative Evidence
-  ↓
-Observed State
-  ↓
-Canonical Financial-Life State
-  ↓
-Relational Ontology
-  ↓
-Temporal / Statistical / Behavioral / Causal Intelligence
-  ↓
-Risk / Opportunity / Prediction / Scenario / Decision / Consequence / Outcome / Learning
-  ↓
-Cross-Domain Intelligence
-  ↓
-Higher-Order Intelligence
-  ↓
-Recursive Derived Intelligence
-  ↓
-IRIS Features / Reports / Questions / Explanations / Evidence / Education / Workspaces
-  ↓
-User
-```
-
-Every stage can be traversed forward and backward when the required lineage exists.
-
-## 1. The single-system rule
-
-Any IRIS surface may expose any portion of the complete hierarchy when that content is supported by governed evidence and/or legitimately derived by IRIS from that evidence.
-
-Education is contextual intelligence explanation. It is not a data-free sandbox.
-
-Evidence is not a separate side.
-
-Reports are not a separate side.
-
-Financial Life is not a separate side.
-
-Features, reports, questions, explanations, evidence, education, workspaces and financial-life state are different representations and traversal surfaces of the same hierarchy.
-
-A user may move forward from a transaction into classification, relationships, behavior, patterns, anomalies, causal reasoning, forecasting, scenarios, decisions and consequences. The user may also move backward from a decision or result through its reasoning, intelligence nodes, relationships, canonical state and exact supporting evidence.
-
-## 2. Universal IRIS surface rule
-
-**Any IRIS surface may expose any portion of the complete intelligence hierarchy when that content is supported by the user's governed evidence and/or legitimately derived by IRIS from that evidence.**
-
-The surface does not determine whether content is factual. Evidence state, derivation state, lineage, uncertainty, execution state and certification/publication rules determine whether content is eligible to be presented and how it must be labeled.
-
-Therefore:
-
-- observed content remains observed;
-- derived content remains derived;
-- inferred content remains inferred;
-- predicted content remains predicted;
-- hypothetical content remains hypothetical;
-- scenario content remains scenario content;
-- unknown remains unknown;
-- unavailable remains unavailable; and
-- unsupported content is not presented as fact.
-
-## 3. Complete bidirectional hierarchy
-
-### Forward traversal
+## The complete hierarchy
 
 ```text
-provider capability / authorized request
+REAL FINANCIAL-LIFE REALITY
         ↓
-provider observation
+PROVIDER / USER / AUTHORITATIVE EVIDENCE
         ↓
-governed evidence
+OBSERVED STATE
         ↓
-observed state
+CANONICAL FINANCIAL-LIFE STATE
         ↓
-canonical Financial-Life State
+RELATIONAL ONTOLOGY
         ↓
-relational ontology
+TEMPORAL / STATISTICAL / BEHAVIORAL / CAUSAL INTELLIGENCE
         ↓
-temporal / statistical / behavioral intelligence
+RISK / OPPORTUNITY / PREDICTION / SCENARIO
         ↓
-patterns / changes / anomalies / relationships
+DECISION / CONSEQUENCE / OUTCOME / LEARNING
         ↓
-risk / opportunity / prediction / scenario
+CROSS-DOMAIN INTELLIGENCE
         ↓
-decision / recommendation / consequence
+HIGHER-ORDER INTELLIGENCE
         ↓
-outcome / learning / higher-order composition
+RECURSIVE DERIVED INTELLIGENCE
         ↓
-qualified IRIS result / report / explanation / feature
+REPORTS / FEATURES / QUESTIONS / EXPLANATIONS / EDUCATION / WORKSPACES
         ↓
-user
+USER
 ```
 
-### Reverse traversal
+The hierarchy is a graph, not a finite tree or fixed list of pages. It supports forward traversal and exact reverse traversal wherever persisted lineage exists. There is no artificial semantic depth ceiling.
+
+## Current authoritative state — 2026-09-13
+
+**Capability infrastructure exists. Authoritative persisted hierarchy intelligence does not yet exist.**
+
+After removal of pre-certification artifacts, the legitimate current state is:
 
 ```text
-user result / report / answer / explanation
-        ↓
-producing intelligence node(s)
-        ↓
-upstream dependencies and relationships
-        ↓
-canonical Financial-Life State
-        ↓
-exact governed evidence
-        ↓
-source-field observation
-        ↓
-provider observation
+iris_user_intelligence_nodes          = 0
+iris_user_intelligence_edges         = 0
+iris_user_intelligence_compositions  = 0
+hierarchy-intelligence lineage       = 0
+iris_certifications                  = 0
+published certified intelligence     = 0
 ```
 
-A factual reverse path requires exact persisted lineage. A conceptual explanation must be explicitly conceptual and must never be presented as the user's actual evidence.
+This is intentional and correct. It means IRIS has not yet successfully completed a real post-correction run through certification and materialized its first authoritative hierarchy.
 
-## 4. Intelligence hierarchy
+**Do not describe capability code, planned graph structure, or tests as persisted hierarchy intelligence.**
 
-Level 1 is **IRIS**.
+## Current certification boundary
 
-Level 2 contains the eight authoritative financial-life evidence domains:
+The only permitted hierarchy write sequence is:
 
-1. Authentication
-2. Transactions
-3. Balance
-4. Identity
-5. Assets
-6. Liabilities
-7. Investments
-8. Statements
+```text
+REAL SUPABASE / PLAID EVIDENCE
+        ↓
+EVIDENCE BOUNDARY
+        ↓
+CAPABILITY PLANNING
+        ↓
+RECURSIVE COMPUTATION
+        ↓
+SEMANTIC DEPENDENCY VALIDATION
+        ↓
+EXECUTION OUTPUT
+        ↓
+VALIDATION
+        ↓
+CERTIFICATION
+        ↓
+AUTHORITATIVE HIERARCHY MATERIALIZATION
+        ↓
+NODES / EDGES / COMPOSITIONS / LINEAGE
+        ↓
+CERTIFIED INTELLIGENCE
+        ↓
+UNIFIED IRIS SURFACES
+```
 
-Level 3 and beyond are recursively generated intelligence. The hierarchy is a graph, not a finite tree and not a fixed list of pages.
+Any authoritative hierarchy write before certification is a defect. Database certification guards enforce this boundary independently of application code.
 
-Nodes may:
+The recursive executor no longer receives a hierarchy-node persistence callback. Arbitrary recursive composition materialization independently checks for the exact certified run. The prior pre-certification hierarchy artifacts were purged.
 
-- have multiple upstream parents;
-- cross domains;
-- depend on temporal relationships;
-- depend on other derived intelligence;
-- preserve exact upstream identities;
-- retain recursive ancestry;
-- retain evidence and provenance bindings;
-- carry uncertainty and limitations; and
-- become inputs to additional intelligence indefinitely where evidence, governance, resources and usefulness permit.
+The current backend build is still required to pass the complete test suite and deploy successfully before a new authenticated runtime certification can be claimed.
 
-There is no artificial semantic depth ceiling. Runtime, storage, latency, pagination and materialization limits are operational constraints only.
+## Evidence truth
 
-The finite capability registry is composition machinery. It is not the boundary of what IRIS can understand.
-
-Arbitrary derived-intelligence graph nodes must support exact upstream references, transformation identity, recursive lineage, evidence binding, provenance, uncertainty/limitations and certification/publication state.
-
-## 5. Eight authoritative domains
-
-IRIS has eight authoritative financial-life domains:
-
-1. **Authentication** — authenticated user and connection authorization state.
-2. **Transactions** — observed transaction events and their governed semantics.
-3. **Balance** — observed account balance state and temporal balance context.
-4. **Identity** — observed identity information and provenance.
-5. **Assets** — observed asset state and relationships.
-6. **Liabilities** — observed liability and obligation state where evidence supports it.
-7. **Investments** — observed investment, holding and security state where available.
-8. **Statements** — authoritative domain, intentionally deferred from current Sandbox execution until real banking.
-
-The current executable Sandbox boundary may be narrower than the architectural eight-domain hierarchy. A deferred domain is never simulated or fabricated to make the hierarchy appear complete.
-
-## 6. Evidence-state contract
-
-These states are always distinct:
+IRIS always distinguishes:
 
 ```text
 available
@@ -188,7 +109,7 @@ available
 ≠ intelligence consumed
 ```
 
-Epistemic states are also distinct:
+It also distinguishes:
 
 ```text
 unknown
@@ -201,19 +122,30 @@ unknown
 ≠ observed
 ```
 
-Unknown is never silently represented as zero.
+Unknown is never silently represented as zero. Prediction is not observation. Scenario is not observation. Correlation is not causation. Persistence is not semantic proof.
 
-Persistence does not prove semantic correctness. Dependency readability does not prove semantic consumption. Prediction is not observation. Scenario is not observation. Correlation is not causation.
+## Eight authoritative domains
 
-## 7. Products and Reports are different
+1. Authentication
+2. Transactions
+3. Balance
+4. Identity
+5. Assets
+6. Liabilities
+7. Investments
+8. Statements
 
-Provider products and IRIS reports are different concepts and must never be forced to have the same count.
+Statements is architecturally authoritative but remains deferred from the current Sandbox evidence boundary until real banking. It must never be simulated or fabricated.
 
-A provider product is an external source capability that can potentially contribute evidence.
+## Plaid → Supabase boundary
 
-An IRIS Report Product is a governed publication definition over the intelligence graph. It may depend on multiple provider products, evidence domains, intelligence nodes, temporal relationships and recursive compositions.
+Plaid is an external provider/source capability within the same IRIS hierarchy. The verified ingestion path is scoped to the specific Sandbox Item/data path actually tested. Broader multi-Item and future-runtime claims require their own reconciliation.
 
-Therefore:
+Provider capability metadata is not financial evidence. A provider product being available or requested does not prove that its response was received or persisted.
+
+## Products and Reports
+
+Provider Products and IRIS Report Products are independent concepts.
 
 ```text
 Provider Product count ≠ Report Product count
@@ -221,72 +153,13 @@ Report Product count ≠ produced result count
 produced result count ≠ certified result count
 ```
 
-Every displayed count must come from its own governed catalog/runtime state. No numbers are fabricated for visual symmetry.
+Counts must come from their own governed catalog/runtime state. No number is fabricated for visual symmetry.
 
-## 8. Report lifecycle
+## Anti-fabrication rule
 
-```text
-Define report product
-        ↓
-Declare evidence and intelligence dependencies
-        ↓
-Observe authorized provider evidence
-        ↓
-Persist governed evidence
-        ↓
-Build canonical Financial-Life State
-        ↓
-Execute governed intelligence
-        ↓
-Persist exact runtime inputs/outputs and lineage
-        ↓
-Prove semantic transformation
-        ↓
-Validate evidence boundary
-        ↓
-Certify where required gates pass
-        ↓
-Publish eligible result
-        ↓
-User explores / asks / compares / scenarios / decides
-        ↓
-Observe supported outcomes
-        ↓
-Learn only from independently qualified outcomes
-```
+**Fake AI data is strictly prohibited.**
 
-A report definition is not a user-specific result. A catalog entry is not evidence. A runtime result is not automatically certified.
-
-## 9. Read-only boundary
-
-Current IRIS scope is read-only.
-
-No ACH, RTP, FedNow, card movement, transfer, withdrawal, trade, deposit or other money movement is implied or implemented as part of the current intelligence product.
-
-Round-Ups remain an IRIS feature and analytical/read-only capability within the current boundary. They are not the definition of IRIS and they are not the intelligence foundation.
-
-## 10. UI correctness
-
-The interface is a representation of the same hierarchy, not a separate architecture.
-
-Every screen must have:
-
-- consistent IRIS visual identity;
-- working navigation and controls;
-- truthful loading, empty, insufficient-evidence, unavailable, deferred and error states;
-- separate Products and Reports concepts and data sources;
-- no hardcoded financial facts;
-- no fabricated provider observations;
-- no false connected/observed/certified/intelligence-ready claims; and
-- a traceable relationship to the underlying governed hierarchy where factual content is shown.
-
-A rendered screen is not complete merely because it looks finished. A button is not complete merely because it is visible. A report is not complete merely because its definition exists.
-
-## 11. Anti-fabrication rule
-
-Fake AI data is strictly prohibited.
-
-Never manufacture:
+Never manufacture or present as user truth:
 
 - users;
 - accounts;
@@ -302,111 +175,62 @@ Never manufacture:
 - causal claims; or
 - any other financial fact.
 
-Actual provider Sandbox records may be used as Sandbox test evidence. They must never be represented as production truth.
+Actual Plaid Sandbox observations are allowed as Sandbox test evidence only and must remain explicitly Sandbox evidence. Technical test mocks cannot become production financial evidence.
 
-If evidence is missing, IRIS uses an appropriate insufficient-evidence, unavailable, unknown, deferred or not-observed state rather than inventing a value.
+When evidence is missing, IRIS uses truthful insufficient-evidence, unavailable, deferred, unknown, or not-observed states.
 
-## 12. Certification chain
+## UI and user journey
 
-The governing chain is:
+The UI is part of the hierarchy. It is not a second architecture.
 
-`Architecture Defined → Contract Defined → Schema Implemented → Runtime Implemented → Independently Executable → Evidence Verified → Exact Evidence Boundary Verified → Semantic Lineage Verified → Report Product Defined → Report Product User-Controlled → Report Product Surfaced → Interaction Verified → Deployment Verified → End-to-End Certified`
+Any IRIS surface may expose any supported portion of the hierarchy when governed evidence and legitimate derivation permit it. User-specific content is not prohibited from an intelligence or education surface merely because of the surface name.
 
-A later state never implies an earlier state is certified.
+The current product journey is:
 
-## 13. Build priority
+`Financial Life → Change → Understand → Evidence → Intelligence → Reports → Scenarios → Decisions → Action → Outcomes → Connect`
 
-The build is ordered by dependency and proof, not by separate product sides.
+This is a traversal order, not a division into architectural sides.
 
-Current work prioritizes the complete consumer experience and UI correctness before expanding the connected provider experience, while preserving the entire intelligence hierarchy underneath it.
+Every route and control must be backed by a real supported behavior and truthful loading, empty, insufficient-evidence, unavailable, deferred and error state. A visible button is not proof of functionality.
 
-This is an implementation order, **not an architectural division**.
+## Certification and proof
 
-The intelligence hierarchy, Financial-Life state, evidence, reports, education, questions, explanations and workspaces remain one complete IRIS system throughout the build.
+The full proof chain is:
 
-## 14. Non-negotiables
+`Architecture Defined → Contract Defined → Schema Implemented → Runtime Implemented → Independently Executable → Evidence Verified → Exact Evidence Boundary Verified → Semantic Lineage Verified → Product/Report Defined → Product/Report User-Controlled → Product/Report Surfaced → Interaction Verified → Deployment Verified → End-to-End Certified`
 
-1. One IRIS system, one complete hierarchy, one relational ontology financial-life state ecosystem.
-2. No two-side architecture.
-3. No separate data-free Intelligence/Education side.
-4. Any IRIS surface may expose supported evidence-derived content.
-5. No fake AI data.
-6. No fabricated financial facts.
-7. No unknown-as-zero substitution.
-8. No provider capability/evidence confusion.
-9. No observation/derivation/prediction/scenario confusion.
-10. No lineage claim without exact persisted lineage.
-11. No artificial semantic depth ceiling.
-12. No artificial equality between Products and Reports counts.
-13. No money movement in the current read-only boundary.
-14. No certification claims without actual proof.
-15. Forward and reverse traversal are first-class architectural requirements.
+A document, code path, table, endpoint, component, build, deployment or persisted row is not certification by itself.
 
-## 15. UI, interaction, and end-to-end proof gate
+## Current next gate
 
-The complete UI is now treated as a governed traversal surface rather than a collection of independent pages.
+1. Complete the backend test/build gate.
+2. Deploy the corrected backend.
+3. Run one real authenticated execution against the governed Supabase/Plaid evidence boundary.
+4. Prove execution output persistence.
+5. Prove validation persistence.
+6. Prove certification persistence.
+7. Prove first post-certification hierarchy materialization.
+8. Reconcile nodes, edges, compositions and exact lineage.
+9. Prove reverse traversal back to evidence.
+10. Make all IRIS surfaces consume the same authoritative hierarchy.
+11. Only then claim end-to-end hierarchy intelligence is operational.
 
-The authoritative workspace registry defines the reachable workspace graph. Every registered workspace destination is routed explicitly; an unknown route is never silently substituted with another page.
+Until these gates pass, the correct state is **not yet certified**.
 
-Registered workspace surfaces must read actual persisted overview/provider data and certified intelligence when available. They must not populate a page with invented metrics merely because the page exists in navigation.
+## Read-only boundary
 
-The UI proof sequence is:
+Current IRIS scope is read-only. No ACH, RTP, FedNow, card movement, transfer, withdrawal, trade, deposit or other money movement is part of the current intelligence product.
 
-```text
-workspace registry
-→ route resolution
-→ rendered surface
-→ governed API read
-→ real observed/certified data
-→ truthful state
-→ interactive control
-→ destination/action
-→ downstream hierarchy node
-→ reverse traversal to evidence where supported
-```
+Round-Ups remain a read-only/simulation analytical feature and are not the definition of IRIS intelligence.
 
-A control is considered functional only when its handler invokes the intended real behavior and the success, loading, empty, insufficient-evidence and failure states are truthful.
+## Repository authority
 
-The current frontend implementation includes an evidence-backed workspace surface for registered Financial-Life destinations. Workspace pages use the authoritative consumer intelligence contract rather than an ad-hoc client-side financial schema.
+See:
 
-The UI must never use visual completeness as a substitute for runtime proof.
+- `ROADMAP.md` — engineering roadmap and proof state.
+- `docs/ARCHITECTURE.md` — canonical architecture.
+- `docs/DOCUMENTATION_AUTHORITY.md` — documentation and continuity authority.
+- `docs/IRIS_SCREEN_MAP.md` — consumer traversal/surface map.
+- `docs/CHANGELOG.md` — implementation chronology.
 
-## 16. Intelligence-to-content correctness gate
-
-Every intelligence capability must remain connected to the unified IRIS hierarchy and its supported content surfaces.
-
-The publication chain is:
-
-```text
-real provider evidence
-→ canonical state
-→ governed capability
-→ exact upstream dependencies
-→ semantic transformation
-→ persisted intelligence node/output
-→ certification gate
-→ report/question/explanation/education/workspace content
-→ user
-```
-
-If an upstream capability is insufficiently evidenced, downstream intelligence must not invent a substitute result. If a report, question, explanation, education item or workspace surface lacks legitimate supporting content, it must not manufacture content to fill the UI.
-
-Questions, explanations and education are contextual traversal surfaces of the same hierarchy. They are not a separate AI-data source.
-
-## 17. Current verification rule
-
-Structural mapping, successful compilation, route existence and deployment are necessary but are not by themselves end-to-end certification.
-
-End-to-end certification requires authenticated runtime traversal and reconciliation of:
-
-- UI action;
-- API request;
-- backend execution;
-- governed evidence boundary;
-- persisted output;
-- exact lineage;
-- certification state;
-- displayed content; and
-- reverse traversal.
-
-Until that proof exists, the state remains explicitly unverified rather than being represented as 100% complete.
+Documentation never overrides live runtime/database proof.
