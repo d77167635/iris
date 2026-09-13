@@ -9,17 +9,16 @@ const rawTables = [
   ["plaid_raw_balances", null],
   ["plaid_raw_liabilities", null],
   ["plaid_raw_product_observations", null],
-  ["plaid_product_observations", null],
   ["plaid_provider_response_receipts", null]
 ] as const;
 
 async function readAll(table: string, userId: string, columns: readonly string[] | null) {
   const rows: Record<string, unknown>[] = [];
   for (let from = 0; ; from += PAGE_SIZE) {
-    let query = supabase.from(table).select(columns ? columns.join(",") : "*").eq("user_id", userId).range(from, from + PAGE_SIZE - 1);
+    const query = supabase.from(table).select(columns ? columns.join(",") : "*").eq("user_id", userId).range(from, from + PAGE_SIZE - 1);
     const { data, error } = await query;
     if (error) throw error;
-    const page = (data ?? []) as Record<string, unknown>[];
+    const page = (data ?? []) as unknown as Record<string, unknown>[];
     rows.push(...page);
     if (page.length < PAGE_SIZE) return rows;
   }
