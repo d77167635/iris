@@ -54,6 +54,7 @@ export async function executeIrisRun(request: RunRequest) {
   }).select("*").single();
   if (runError || !run) throw new Error(`Unable to create Iris run: ${runError?.message || "unknown error"}`);
 
+  let executionId: string | null = null;
   try {
     const { data: accounts, error: accountError } = await supabaseAdmin
       .from("plaid_accounts")
@@ -78,8 +79,8 @@ export async function executeIrisRun(request: RunRequest) {
       ...(balanceQuery.data ?? []).map(e => ({ run_id: run.id, user_id: userId, evidence_type: "provider_raw_balance", provider: "plaid", product: "balance", raw_observation_id: e.id, effective_at: e.effective_at ?? e.acquired_at, acquired_at: e.acquired_at, evidence_hash: hash(e.raw_response) })),
       ...(liabilityQuery.data ?? []).map(e => ({ run_id: run.id, user_id: userId, evidence_type: "provider_raw_liability", provider: "plaid", product: "liabilities", raw_observation_id: e.id, effective_at: e.effective_at ?? e.acquired_at, acquired_at: e.acquired_at, evidence_hash: hash(e.raw_response) })),
     ];
-
     if (!evidenceRows.length) throw new Error("RUN_EVIDENCE_EMPTY: selected canonical Item has no current observed provider evidence to execute against.");
+
     const { data: insertedEvidence, error: evidenceInsertError } = await supabaseAdmin.from("iris_run_evidence").insert(evidenceRows).select("id");
     if (evidenceInsertError) throw new Error(`RUN_EVIDENCE_PERSIST_FAILED: ${evidenceInsertError.message}`);
     const runEvidenceIds = (insertedEvidence ?? []).map(row => row.id).filter((id): id is string => typeof id === "string");
@@ -88,6 +89,7 @@ export async function executeIrisRun(request: RunRequest) {
     const inputHash = hash(executionManifest);
     const { data: execution, error: executionError } = await supabaseAdmin.from("iris_execution_records").insert({ run_id: run.id, user_id: userId, capability_id: CAPABILITY_ID, operator_id: EXECUTOR_OPERATOR_ID, operator_version: EXECUTOR_OPERATOR_VERSION, execution_state: "EXECUTING", started_at: asOf, evidence_state: "CALCULATED", validation_status: "UNKNOWN", certification_status: "PENDING", input_manifest: executionManifest, input_hash: inputHash }).select("*").single();
     if (executionError || !execution) { await failRun(run.id, userId, `EXECUTION_RECORD_CREATE_FAILED: ${executionError?.message || "unknown error"}`); throw new Error(`Unable to create Iris execution record: ${executionError?.message || "unknown error"}`); }
+    executionId = execution.id;
     await supabaseAdmin.from("iris_runs").update({ status: "EXECUTING", evidence_version: "provider-observation-boundary-v4", updated_at: new Date().toISOString() }).eq("id", run.id).eq("user_id", userId);
 
     const { error: inputError } = await supabaseAdmin.from("iris_execution_inputs").insert({ execution_id: execution.id, input_type: "execution_manifest", reference_type: "iris_run", reference_id: run.id, role: "primary", hash: inputHash });
@@ -125,8 +127,9 @@ export async function executeIrisRun(request: RunRequest) {
       return { ...run, id: run.id, status: "CERTIFIED", execution_id: execution.id, result, certified: true, certification_hash: certificationHash, certification_gate: gate };
     } catch (error) { await failExecution(run.id, execution.id, userId, "INTELLIGENCE_EXECUTION_FAILED", errorText(error)); throw error; }
   } catch (error) {
-    const message = errorText(error);
-    await failRun(run.id, userId, message);
+    if (!executionId) {
+      await failRun(run.id, userId, errorText(error));
+    }
     throw error;
   }
 }
