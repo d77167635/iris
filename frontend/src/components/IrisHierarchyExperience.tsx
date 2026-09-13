@@ -7,9 +7,11 @@ type Relationship = { relation_type?: string; account_id?: string; item_id?: str
 type Domain = { domain_key: string; evidence_state: string; canonical_fields?: Field[]; derived_fields?: Field[]; relationships?: Relationship[]; domain_intelligence?: any[]; limitations?: string[] };
 type Cross = { key: string; name: string; domains: string[]; state: string; value: Record<string, unknown> };
 type Level2 = { certified?: boolean; level: number; evidence_boundary?: string; domains?: Domain[]; cross_domain?: Cross[]; materialized?: { nodes: number; edges: number; compositions: number } };
-type Level3Temporal = { certified?: boolean; status?: string; publication_status?: string; run_id?: string; execution_id?: string; evidence_boundary?: string; output_hash?: string; certification_hash?: string; result?: { temporal_state?: { first_observed_date?: string; last_observed_date?: string; observed_span_days?: number; canonical_posted_transaction_count?: number; temporal_granularity?: string; evidence_boundary?: string }; temporal_relationships?: Array<Record<string, unknown>>; coverage?: { transaction_date_range_supported?: boolean; transaction_level_sequence_supported?: boolean; limitation?: string }; upstream?: { level?: number; run_id?: string; execution_id?: string; output_hash?: string; node_id?: string; node_hash?: string }; provenance?: Record<string, unknown> } };
+type Level3Capability = { capability_id?: string; name?: string | null; evidence_state?: string; recursive_depth?: number | null; upstream_count?: number };
+type Level3 = { certified?: boolean; status?: string; publication_status?: string; run_id?: string; execution_id?: string; evidence_boundary?: string; output_hash?: string; certification_hash?: string; capability_count?: number; capabilities?: Level3Capability[]; materialized?: { nodes?: number }; parent_level2?: { run_id?: string; execution_id?: string; output_hash?: string; certification_hash?: string } | null };
 
 const names: Record<string, string> = { authentication: "Connections", transactions: "Transactions", balance: "Balance", identity: "Identity", assets: "Assets", liabilities: "Liabilities", investments: "Investments", statements: "Statements" };
+const capabilityNames: Record<string, string> = { temporal: "Temporal", financial_life_state: "Financial Life State", relational_ontology: "Relational Ontology", analysis: "Analysis", behavioral: "Behavioral", pattern: "Pattern", relationship: "Relationship", anomaly: "Anomaly", causal: "Causal", predictive: "Predictive", scenario: "Scenario", decision: "Decision", recommendation: "Recommendation", risk: "Risk", opportunity: "Opportunity", consequence: "Consequence", outcome: "Outcome", learning: "Learning", emergent: "Emergent" };
 const money = (v: unknown) => typeof v === "number" && Number.isFinite(v) ? `${v < 0 ? "−" : ""}$${Math.abs(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : v == null ? "—" : String(v);
 const pretty = (key: string) => key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 const stateLabel = (state?: string) => pretty((state ?? "INSUFFICIENT_EVIDENCE").toLowerCase());
@@ -20,11 +22,11 @@ function TransactionRecord({ field }: { field: Field }) { const value = (field.v
 
 export function IrisHierarchyExperience() {
   const [data, setData] = useState<Level2 | null>(null);
-  const [temporal, setTemporal] = useState<Level3Temporal | null>(null);
+  const [level3, setLevel3] = useState<Level3 | null>(null);
   const [active, setActive] = useState("overview");
   const [error, setError] = useState<string | null>(null);
   const [running, setRunning] = useState(true);
-  const [temporalRunning, setTemporalRunning] = useState(false);
+  const [level3Running, setLevel3Running] = useState(false);
 
   const load = async () => {
     setError(null); setRunning(true);
@@ -38,16 +40,16 @@ export function IrisHierarchyExperience() {
       if (!current?.certified) throw new Error("The certified IRIS hierarchy is not available.");
       setData(current);
       try {
-        let currentTemporal = await api.getIrisLevel3Temporal();
-        if (!currentTemporal?.certified) {
-          setTemporalRunning(true);
-          currentTemporal = await api.runIrisLevel3Temporal();
+        let currentLevel3 = await api.getIrisLevel3();
+        if (!currentLevel3?.certified) {
+          setLevel3Running(true);
+          currentLevel3 = await api.runIrisLevel3();
         }
-        setTemporal(currentTemporal);
-      } catch (temporalError) {
-        console.error("Level 3 Temporal unavailable", temporalError);
-        setTemporal(null);
-      } finally { setTemporalRunning(false); }
+        setLevel3(currentLevel3);
+      } catch (level3Error) {
+        console.error("Level 3 recursive intelligence unavailable", level3Error);
+        setLevel3(null);
+      } finally { setLevel3Running(false); }
     } catch (e) { setError(e instanceof Error ? e.message : "IRIS could not load the current hierarchy."); }
     finally { setRunning(false); }
   };
@@ -59,8 +61,6 @@ export function IrisHierarchyExperience() {
   const connections = useMemo(() => cross.filter(x => x.domains.length >= 2), [cross]);
   const accountNames = useMemo(() => { const map = new Map<string, string>(); const balances = domains.find(d => d.domain_key === "balance")?.canonical_fields ?? []; for (const field of balances) { const id = field.field_key.match(/^account:([^.]*)\.balance$/)?.[1]; if (id) map.set(id, field.label); } return map; }, [domains]);
   const relationshipLabel = (r: Relationship) => r.account_id ? accountNames.get(r.account_id) ?? "Connected account" : r.item_id ? "Connected institution" : pretty(r.relation_type ?? "relationship");
-  const temporalState = temporal?.result?.temporal_state ?? {};
-  const temporalCoverage = temporal?.result?.coverage ?? {};
 
   if (running) return <main className="ih-loading"><div className="ih-orb">I</div><h1>IRIS</h1><p>Assembling your connected financial life…</p></main>;
   if (error || !data) return <main className="ih-loading"><div className="ih-orb">I</div><h1>IRIS</h1><p>{error ?? "Your financial state could not be loaded."}</p><button onClick={() => void load()}>Try again</button></main>;
@@ -69,15 +69,19 @@ export function IrisHierarchyExperience() {
     <header className="ih-header"><div className="ih-brand"><div className="ih-mark">I</div><div><b>IRIS</b><span>Financial life intelligence</span></div></div><div className="ih-header-state"><span className="ih-live"/>Current state <State state="OBSERVED"/></div></header>
     <div className="ih-layout"><aside className="ih-nav"><div className="ih-nav-title">Your financial life</div><button className={active === "overview" ? "active" : ""} onClick={() => setActive("overview")}>Overview</button>{domains.map(d => <button key={d.domain_key} className={active === d.domain_key ? "active" : ""} onClick={() => setActive(d.domain_key)}>{names[d.domain_key] ?? pretty(d.domain_key)}<State state={d.evidence_state}/></button>)}</aside>
       <section className="ih-content">{active === "overview" ? <>
-        <div className="ih-hero"><div><span className="ih-eyebrow">Your financial life</span><h1>See the relationships,<br/>not just the numbers.</h1><p>IRIS organizes authorized financial evidence into a living, relational state. Move through the hierarchy and connected intelligence stays in context.</p></div><div className="ih-core"><div className="ih-core-ring">IRIS</div>{domains.map((d, i) => <i key={d.domain_key} style={{ ["--i" as any]: i }}/>)}</div></div>
+        <div className="ih-hero"><div><span className="ih-eyebrow">Your financial life</span><h1>See the relationships,<br/>not just the numbers.</h1><p>IRIS organizes authorized financial evidence into one living relational hierarchy. Financial state and intelligence remain in the same graph.</p></div><div className="ih-core"><div className="ih-core-ring">IRIS</div>{domains.map((d, i) => <i key={d.domain_key} style={{ ["--i" as any]: i }}/>)}</div></div>
 
-        <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Level 3 · Intelligence</span><h2>Temporal</h2></div><span>{temporalRunning ? "Building from certified Level 2" : temporal?.certified ? "Certified · Published" : "Insufficient evidence"}</span></div>
-          {temporal?.certified && temporalState ? <div className="ih-level3-grid">
-            <article className="ih-level3-card"><span>Observed temporal span</span><State state="CALCULATED"/><strong>{temporalState.first_observed_date ?? "—"} → {temporalState.last_observed_date ?? "—"}</strong><small>{temporalState.observed_span_days == null ? "Insufficient evidence" : `${temporalState.observed_span_days} calendar days in the certified Level 2 boundary`}</small></article>
-            <article className="ih-level3-card"><span>Transactions in boundary</span><State state="CALCULATED"/><strong>{temporalState.canonical_posted_transaction_count == null ? "—" : String(temporalState.canonical_posted_transaction_count)}</strong><small>Certified posted transaction count consumed from Level 2</small></article>
-            <article className="ih-level3-card"><span>Temporal relationship</span><State state="CALCULATED"/><strong>Transaction → observed date range</strong><small>Calculated temporal structure derived from the certified transactions domain</small></article>
-            <article className="ih-level3-card"><span>Granularity boundary</span><State state="INSUFFICIENT_EVIDENCE"/><strong>{temporalCoverage.transaction_level_sequence_supported ? "Transaction sequence supported" : "Sequence not promoted"}</strong><small>{temporalCoverage.limitation ?? "No unsupported temporal detail was inferred."}</small></article>
-          </div> : <div className="ih-empty">Level 3 Temporal is not published because its certified Level 2 parent is not available.</div>}
+        <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Level 3+ · Recursive intelligence</span><h2>Intelligence graph</h2></div><span>{level3Running ? "Building from certified Level 2" : level3?.certified ? "Certified · Published" : "Insufficient evidence"}</span></div>
+          {level3?.certified ? <>
+            <div className="ih-level3-grid">
+              <article className="ih-level3-card"><span>Recursive capabilities</span><State state="CERTIFIED"/><strong>{level3.capability_count ?? level3.capabilities?.length ?? 0}</strong><small>Registered operators resolved through governed dependency order</small></article>
+              <article className="ih-level3-card"><span>Published intelligence nodes</span><State state="CERTIFIED"/><strong>{level3.materialized?.nodes ?? 0}</strong><small>Materialized only after execution, validation and certification</small></article>
+              <article className="ih-level3-card"><span>Parent hierarchy</span><State state="CERTIFIED"/><strong>Level 2</strong><small>Bound to the certified published Level 2 execution</small></article>
+              <article className="ih-level3-card"><span>Recursive depth</span><State state="CALCULATED"/><strong>{Math.max(0, ...(level3.capabilities ?? []).map(c => typeof c.recursive_depth === "number" ? c.recursive_depth : 0))}</strong><small>Observed from persisted upstream ancestry; no semantic depth ceiling</small></article>
+            </div>
+            <div className="ih-capability-grid">{(level3.capabilities ?? []).map((cap, index) => <article className="ih-capability-card" key={`${cap.capability_id ?? index}-${index}`}><div><span>{capabilityNames[cap.capability_id ?? ""] ?? pretty(cap.capability_id ?? "Capability")}</span><State state={cap.evidence_state}/></div><strong>{cap.recursive_depth == null ? "Derived intelligence" : `Depth ${cap.recursive_depth}`}</strong><small>{cap.upstream_count ?? 0} upstream relationship{(cap.upstream_count ?? 0) === 1 ? "" : "s"}</small></article>)}</div>
+            {level3.parent_level2 && <div className="ih-lineage-note"><b>Governed parent</b><span>Level 2 run {level3.parent_level2.run_id ?? "—"}</span><span>Execution {level3.parent_level2.execution_id ?? "—"}</span><span>Output hash {level3.parent_level2.output_hash ?? "—"}</span></div>}
+          </> : <div className="ih-empty">Level 3+ is not published because its certified Level 2 parent and recursive execution gates are not available.</div>}
         </section>
 
         <section className="ih-section"><div className="ih-section-head"><div><span className="ih-eyebrow">Connected state</span><h2>The financial picture</h2></div><span>{domains.length} domains</span></div><div className="ih-domain-strip">{domains.map(d => <button key={d.domain_key} onClick={() => setActive(d.domain_key)}><span>{names[d.domain_key] ?? pretty(d.domain_key)}</span><State state={d.evidence_state}/><b>{(d.derived_fields ?? []).length + (d.domain_intelligence ?? []).length}</b><small>intelligence elements</small></button>)}</div></section>
