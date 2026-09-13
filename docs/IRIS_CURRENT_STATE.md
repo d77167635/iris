@@ -2,171 +2,153 @@
 
 **State date:** 2026-09-13
 
-This document records the current implementation/proof boundary. It does not substitute for live runtime verification.
+This document records the current implementation/proof boundary. Live runtime truth remains authoritative over documentation.
 
 ## 1. Canonical architecture
 
-IRIS is **one complete hierarchy intelligence relational ontology financial life state ecosystem**.
-
-There are no two sides. Financial Life, Evidence, Understand, Intelligence, Reports, Scenarios, Decisions, Action, Outcomes, Connect, questions, explanations, education and workspaces are traversal surfaces of the same hierarchy.
-
-## 2. Current hierarchy truth
-
-Capability infrastructure exists. **Authoritative persisted hierarchy intelligence does not yet exist.**
-
-Current legitimate persisted state:
+IRIS is one complete hierarchy intelligence relational ontology financial life state ecosystem. There are no two sides.
 
 ```text
-iris_user_intelligence_nodes          = 0
-iris_user_intelligence_edges         = 0
-iris_user_intelligence_compositions  = 0
-hierarchy-intelligence lineage       = 0
-iris_certifications                  = 0
-published certified intelligence     = 0
+Plaid/provider evidence
+→ Supabase source of truth
+→ LEVEL 1: governance / certification / lineage
+→ LEVEL 2: authoritative financial domains
+→ LEVEL 3+: recursive intelligence
+→ unified IRIS surfaces
 ```
 
-This zero state is intentional after pre-certification hierarchy artifacts were removed. It must remain zero until a real governed run is certified and its hierarchy is materialized after certification.
+## 2. Level 1 boundary — authoritative correction
 
-## 3. Required runtime boundary
+**Level 1 is governance only. It has no financial-content output.**
+
+Level 1 establishes:
+
+- authenticated user scope;
+- the authoritative active Plaid Item boundary;
+- evidence manifest and evidence hashes;
+- execution identity;
+- input/output binding;
+- exact execution lineage;
+- validation;
+- certification;
+- publication authorization for the governed hierarchy boundary;
+- reverse lineage from the governance certificate to exact Supabase source records.
+
+The Level 1 output is a governance certificate. It does not contain transaction, balance, spending, debt, asset, investment, identity, statement, or other financial-life content.
+
+The authoritative contract is `docs/LEVEL1_GOVERNANCE_CONTRACT.md`.
+
+## 3. Level 1 must not materialize financial hierarchy
+
+A successful Level 1 run must create **zero**:
 
 ```text
-REAL SUPABASE / PLAID EVIDENCE
-→ EVIDENCE BOUNDARY
-→ CAPABILITY PLANNING
-→ RECURSIVE COMPUTATION
-→ SEMANTIC DEPENDENCY VALIDATION
-→ EXECUTION OUTPUT
-→ VALIDATION
-→ CERTIFICATION
-→ AUTHORITATIVE HIERARCHY MATERIALIZATION
-→ NODES / EDGES / COMPOSITIONS / LINEAGE
-→ CERTIFIED INTELLIGENCE
-→ UNIFIED IRIS SURFACES
+iris_user_intelligence_nodes
+iris_user_intelligence_edges
+iris_user_intelligence_compositions
 ```
 
-Any authoritative hierarchy write before certification is a defect.
+Those tables represent user-specific financial/intelligence hierarchy content and begin only at the appropriate later hierarchy stage.
 
-## 4. Current Plaid resync/evidence finding — 2026-09-13
+The structural catalog in `iris_hierarchy_catalog_nodes` remains architecture metadata and is not user financial content.
 
-The current active Plaid Item is:
+## 4. Level 2 boundary
+
+Level 2 is the first level that may materialize user financial content from the certified Level 1 evidence boundary.
+
+The authoritative domains are:
+
+1. Authentication
+2. Transactions
+3. Balance
+4. Identity
+5. Assets
+6. Liabilities
+7. Investments
+8. Statements
+
+Each domain retains its own evidence gate. Missing evidence remains unknown, unobserved, unavailable, deferred, or insufficient-evidence as appropriate. Unknown is never converted to zero.
+
+## 5. Current Plaid/Supabase evidence boundary
+
+The current active Plaid Item is the sole Level 1 candidate unless a later authenticated action explicitly changes that boundary. Historical disconnected Items remain preserved for audit lineage and must not be deleted merely to clean counts.
+
+The normal provider refresh/resync path is separate from reconnect. A successful provider response does not automatically imply that new observations, a new evidence manifest, or a certified Level 1 run exists. Those states remain distinct.
+
+## 6. Current runtime correction
+
+The previous Level 1 implementation attempted to transform source rows into `level1_source_content` records and display those records as Level 1 content. That was architecturally incorrect.
+
+The corrected implementation:
+
+- reads only the governed source metadata required to establish evidence scope;
+- records exact evidence hashes and source IDs;
+- creates a governance certificate only;
+- persists exact execution lineage from source evidence to the governance certificate;
+- independently evaluates governance checks before certification;
+- does not write user financial hierarchy nodes, edges or compositions;
+- explicitly disables downstream levels until certification;
+- points the user screen to governance/certification state only.
+
+No financial values are created by Level 1.
+
+## 7. Certification gate
+
+Level 1 may certify only when:
+
+1. authenticated user scope is valid;
+2. exactly one active authoritative Item is bound;
+3. real Supabase source evidence is present;
+4. every evidence record has a hash;
+5. the evidence manifest is persisted and hashed;
+6. execution input is bound to the manifest;
+7. exactly one governance output exists;
+8. the output contains no financial content;
+9. exact execution lineage is complete;
+10. Level 1 financial hierarchy node/edge/composition counts are zero;
+11. governance validation checks all pass;
+12. certification persists after validation;
+13. downstream levels remain disabled until certification.
+
+## 8. Reverse lineage gate
+
+The Level 1 screen must be traceable:
 
 ```text
-institution: First Platypus Bank
-Item status: active
-Item created: 2026-09-13 11:09:54 UTC
-accounts: 14
-transactions: 48
-balance observations: 28
-liability observations: 6
-provider response receipts: 10
+screen governance certificate
+→ certification hash
+→ execution
+→ run
+→ evidence manifest
+→ execution-lineage record
+→ exact Supabase source record
+→ provider observation/receipt lineage
 ```
 
-The normal refresh/resync path **is executing successfully**. The latest refresh produced successful provider receipts for:
+The Level 1 screen does not need to expose raw financial values. Those values are verified at Level 2 when financial-domain content is first materialized.
 
-- `/item/get`
-- `/accounts/get`
-- `/accounts/balance/get`
-- `/transactions/sync`
-- `/liabilities/get`
+## 9. User verification order
 
-The latest `/transactions/sync` processed two pages and completed successfully with:
+The current work stops at Level 1.
 
-```text
-added     = 0
-modified  = 0
-removed   = 0
-```
+The required sequence is:
 
-The transaction sync cursor and successful checkpoint were persisted. Therefore the resync mechanism is not currently failing at the provider-call/sync-state layer merely because no transactions changed.
+1. deploy corrected Level 1;
+2. execute one real governed Level 1 run against the current authoritative Item;
+3. independently audit the persisted run, execution, evidence, output, lineage, validation and certification records;
+4. perform the reverse-lineage test;
+5. user verifies the actual authenticated Level 1 screen;
+6. only then begin Level 2.
 
-However, reconnecting creates a new Plaid Item and performs a fresh Link exchange, which generated a new ingestion event and 48 transaction additions. This explains why reconnecting appeared to retrigger downstream evidence while resync did not.
+## 10. Permanent truth rules
 
-The unresolved defect is therefore **not proven to be Plaid resync itself**. The remaining boundary is whether a successful resync response/observation is automatically registered into the IRIS governed evidence manifest and causes the required Level-1 execution path. That must be fixed and proven without requiring a reconnect.
-
-Important distinction:
-
-```text
-provider refresh/resync succeeds
-≠
-new transaction observations exist
-≠
-new IRIS evidence manifest exists
-≠
-Level 1 executes
-≠
-Level 1 certifies
-```
-
-Current receipts prove provider responses were received and persisted. Current Level-1 certification does not exist.
-
-## 5. Historical/reconnect contamination boundary
-
-The database currently contains 10 Plaid Items for this user. Nine are disconnected with `ITEM_REMOVED`; the newest Item is active. They were created repeatedly from September 11–13 and are historical/test reconnect artifacts except for the currently active Item, which is the intended current evidence candidate.
-
-No historical Item or source record is to be deleted or rewritten merely to make the counts look clean. Item selection and cleanup require explicit reconciliation and an auditable decision.
-
-The current active Item is the only Item that should be used as the Level-1 certification candidate unless a later authenticated action explicitly changes that boundary.
-
-## 6. Corrections now committed
-
-- Recursive capability execution no longer receives a hierarchy-node persistence callback.
-- Arbitrary recursive composition materialization independently requires an exact certified run.
-- Pre-certification hierarchy artifacts were purged.
-- Database certification guards enforce the certification boundary.
-- The recursive-executor regression fixture was corrected without weakening semantic validation.
-- Fake AI/financial data remains strictly prohibited.
-- Any IRIS surface may expose supported evidence-derived intelligence; intelligence/education surfaces are not a separate data boundary.
-- Products and Reports remain independent concepts and independently sourced counts.
-- Level-1 node persistence was changed to batched writes so a large real evidence scope does not stall on one-node-at-a-time database writes.
-
-## 7. Current unverified boundary
-
-The first corrected real runtime execution has **not yet** been proven end-to-end through:
-
-`resync → governed evidence registration → execution → output → validation → certification → first hierarchy materialization → reverse lineage → unified UI consumption`.
-
-Therefore no current documentation may claim that authoritative hierarchy intelligence has already been generated.
-
-## 8. Next gates
-
-1. Prove resync-created provider responses/observations enter the exact IRIS evidence manifest without reconnecting.
-2. Prove the active Item is the sole bounded Level-1 certification candidate.
-3. Execute Level 1 against that exact evidence boundary.
-4. Execution output persists.
-5. Validation persists and passes.
-6. Certification persists and passes.
-7. First hierarchy nodes/edges/compositions materialize only after certification.
-8. Exact lineage reconciles forward and backward.
-9. Unified IRIS surfaces consume the same persisted hierarchy.
-10. User verifies Level 1 on the actual authenticated screen.
-11. Only after Level 1 passes may Level 2 begin.
-
-## 9. Permanent truth rules
-
-- No fake AI data.
+- Fake AI data is strictly prohibited.
 - No fabricated financial facts.
 - No fabricated provider observations.
 - No unknown-as-zero substitution.
-- No capability metadata treated as observation.
-- No prediction treated as observation.
-- No scenario treated as observation.
-- No causal claim without supported causal reasoning.
-- No lineage claim without exact persisted lineage.
-- No hierarchy write before certification.
+- No capability metadata treated as financial observation.
+- No persistence row treated as semantic proof without the applicable validation.
 - No certification claim without runtime proof.
-- No artificial semantic depth ceiling.
 - No two-side architecture.
-- Reconnect must not be required merely to regenerate governed evidence when the provider resync path already returned a valid response/observation.
-
-## 10. Source hierarchy
-
-Use, in order:
-
-1. live runtime/database evidence;
-2. current GitHub implementation;
-3. `docs/DOCUMENTATION_AUTHORITY.md`;
-4. `docs/ARCHITECTURE.md`, `README.md`, and `ROADMAP.md`;
-5. other active documentation;
-6. prior conversation/history.
-
-If a historical document conflicts with this current state, the current authority chain wins and the historical document must be corrected before it is treated as current truth.
+- No reconnect merely to manufacture a downstream evidence event when resync already returned valid provider observations.
+- No Level 2 financial content before Level 1 certification.
