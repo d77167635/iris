@@ -4,7 +4,7 @@ import { planCapabilities } from "./capabilityPlanner.js";
 import { executeRecursiveCapabilityPlan } from "./recursiveCapabilityExecutor.js";
 import { persistRecursiveLineage } from "./recursiveLineage.js";
 import { evaluateCertificationGate } from "./certificationGate.js";
-import { materializeIrisUserReportInventory } from "./irisUserReportComposer.js";
+import { materializeCertifiedHierarchy, materializeIrisUserReportInventory } from "./irisUserReportComposer.js";
 import { resolveCanonicalProviderItem, IRIS_CANONICAL_PROVIDER_DOMAINS, type IrisEvidenceScope } from "./evidenceScope.js";
 
 const PLANNER_VERSION = "iris-capability-planner-v7";
@@ -17,13 +17,24 @@ const DEFAULT_REQUESTED_CAPABILITIES = [CAPABILITY_ID];
 
 type RunRequest = { userId: string; requestId?: string; surface?: string; mode?: string; requestedCapabilities?: string[] };
 function hash(value: unknown): string { return createHash("sha256").update(JSON.stringify(value)).digest("hex"); }
-function errorText(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
-  try { return JSON.stringify(error); } catch { return String(error); }
+function errorText(error: unknown): string { if (error instanceof Error) return error.message; if (typeof error === "string") return error; try { return JSON.stringify(error); } catch { return String(error); } }
+
+async function publicationRpc(name: string, args: Record<string, unknown>): Promise<void> {
+  const { error } = await supabaseAdmin.rpc(name, args);
+  if (error) throw new Error(`PUBLICATION_STATE_PERSISTENCE_FAILED: ${name}: ${error.message}`);
 }
 
-/** The single governed Iris execution boundary. A full-intelligence request expands through the persisted capability registry and executes the resulting dependency graph; durable hierarchy materialization occurs only after certification. */
+async function failPublication(runId: string, executionId: string, userId: string, code: "HIERARCHY_PUBLICATION_FAILED" | "REPORT_PUBLICATION_FAILED" | "PUBLICATION_STATE_PERSISTENCE_FAILED", error: unknown): Promise<never> {
+  const message = errorText(error);
+  try {
+    await publicationRpc("iris_publication_mark_failed", { p_run_id: runId, p_execution_id: executionId, p_user_id: userId, p_error_code: code, p_error_message: message });
+  } catch (stateError) {
+    throw new Error(`PUBLICATION_STATE_PERSISTENCE_FAILED: ${errorText(stateError)}`);
+  }
+  throw new Error(`${code}: ${message}`);
+}
+
+/** The single governed Iris execution boundary. Computation certification is distinct from post-certification hierarchy/report publication. */
 export async function executeIrisRun(request: RunRequest) {
   const userId = request.userId;
   const requestId = request.requestId?.trim() || randomUUID();
@@ -59,17 +70,9 @@ export async function executeIrisRun(request: RunRequest) {
   const scopedEvidenceQuery = selectedItemId ? evidenceQuery.eq("item_id", selectedItemId) : evidenceQuery;
   const rawEvidence = (await scopedEvidenceQuery).data ?? [];
   const evidenceRows = rawEvidence.map(e => ({ run_id: run.id, user_id: userId, evidence_type: "provider_raw_observation", provider: "plaid", product: e.product, raw_observation_id: e.id, effective_at: e.effective_at ?? e.acquired_at, acquired_at: e.acquired_at, evidence_hash: hash(e.raw_response) }));
-  if (evidenceRows.length) {
-    const { error: evidenceInsertError } = await supabaseAdmin.from("iris_run_evidence").insert(evidenceRows);
-    if (evidenceInsertError) { await failRun(run.id, userId, `RUN_EVIDENCE_PERSIST_FAILED: ${evidenceInsertError.message}`); throw new Error(`Unable to persist Iris run evidence: ${evidenceInsertError.message}`); }
-  }
+  if (evidenceRows.length) { const { error: evidenceInsertError } = await supabaseAdmin.from("iris_run_evidence").insert(evidenceRows); if (evidenceInsertError) { await failRun(run.id, userId, `RUN_EVIDENCE_PERSIST_FAILED: ${evidenceInsertError.message}`); throw new Error(`Unable to persist Iris run evidence: ${evidenceInsertError.message}`); } }
 
-  const { data: completeEvidence, error: completeEvidenceError } = await supabaseAdmin
-    .from("iris_run_evidence")
-    .select("id,raw_observation_id,evidence_type,provider,product,effective_at,acquired_at,evidence_hash")
-    .eq("run_id", run.id)
-    .eq("user_id", userId)
-    .order("raw_observation_id", { ascending: true });
+  const { data: completeEvidence, error: completeEvidenceError } = await supabaseAdmin.from("iris_run_evidence").select("id,raw_observation_id,evidence_type,provider,product,effective_at,acquired_at,evidence_hash").eq("run_id", run.id).eq("user_id", userId).order("raw_observation_id", { ascending: true });
   if (completeEvidenceError) { await failRun(run.id, userId, `RUN_EVIDENCE_COMPLETE_READ_FAILED: ${completeEvidenceError.message}`); throw new Error(`Unable to read expanded Iris run evidence: ${completeEvidenceError.message}`); }
   if (!completeEvidence?.length) { await failRun(run.id, userId, "RUN_EVIDENCE_EMPTY: selected evidence boundary produced no run evidence"); throw new Error("Unable to establish the Iris run evidence boundary: no run evidence was persisted."); }
   const runEvidenceIds = completeEvidence.map(row => row.id).filter((id): id is string => typeof id === "string").sort();
@@ -109,10 +112,26 @@ export async function executeIrisRun(request: RunRequest) {
     const certificationHash = hash({ run_id: run.id, execution_id: execution.id, input_hash: inputHash, output_hash: outputHash, policy: CERTIFICATION_POLICY_VERSION, evidence: gate.evidence_snapshot, reconciliation: gate.reconciliation_snapshot });
     const { error: certificationError } = await supabaseAdmin.from("iris_certifications").insert({ run_id: run.id, execution_id: execution.id, user_id: userId, result_id: execution.id, policy_version: CERTIFICATION_POLICY_VERSION, status: "CERTIFIED", validation_snapshot: { status: "PASS", checks: gate.checks }, reconciliation_snapshot: gate.reconciliation_snapshot, evidence_snapshot: gate.evidence_snapshot, certification_hash: certificationHash, certified_at: new Date().toISOString() });
     if (certificationError) { await failExecution(run.id, execution.id, userId, "CERTIFICATION_PERSIST_FAILED", certificationError.message); throw new Error(`Unable to persist Iris certification: ${certificationError.message}`); }
-    const certifiedAt = new Date().toISOString(); await supabaseAdmin.from("iris_execution_records").update({ validation_status: "PASS", certification_status: "CERTIFIED" }).eq("id", execution.id).eq("user_id", userId); await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: certifiedAt, updated_at: certifiedAt }).eq("id", run.id).eq("user_id", userId);
+    const certifiedAt = new Date().toISOString();
+    const { error: executionCertificationStateError } = await supabaseAdmin.from("iris_execution_records").update({ validation_status: "PASS", certification_status: "CERTIFIED" }).eq("id", execution.id).eq("user_id", userId);
+    if (executionCertificationStateError) throw new Error(`Unable to finalize Iris certification state: ${executionCertificationStateError.message}`);
+    const { error: runCertificationStateError } = await supabaseAdmin.from("iris_runs").update({ status: "CERTIFIED", completed_at: certifiedAt, updated_at: certifiedAt }).eq("id", run.id).eq("user_id", userId);
+    if (runCertificationStateError) throw new Error(`Unable to finalize Iris run certification state: ${runCertificationStateError.message}`);
+
+    try { await publicationRpc("iris_publication_mark_hierarchy_pending", { p_run_id: run.id, p_execution_id: execution.id, p_user_id: userId }); }
+    catch (publicationStateError) { return await failPublication(run.id, execution.id, userId, "PUBLICATION_STATE_PERSISTENCE_FAILED", publicationStateError); }
+    try { await materializeCertifiedHierarchy({ userId, runId: run.id, executionId: execution.id, certificationHash }); }
+    catch (hierarchyError) { return await failPublication(run.id, execution.id, userId, "HIERARCHY_PUBLICATION_FAILED", hierarchyError); }
+    try { await publicationRpc("iris_publication_mark_hierarchy_published", { p_run_id: run.id, p_execution_id: execution.id, p_user_id: userId }); }
+    catch (publicationStateError) { return await failPublication(run.id, execution.id, userId, "PUBLICATION_STATE_PERSISTENCE_FAILED", publicationStateError); }
+    try { await publicationRpc("iris_publication_mark_report_pending", { p_run_id: run.id, p_execution_id: execution.id, p_user_id: userId }); }
+    catch (publicationStateError) { return await failPublication(run.id, execution.id, userId, "PUBLICATION_STATE_PERSISTENCE_FAILED", publicationStateError); }
     try { await materializeIrisUserReportInventory({ userId, runId: run.id, executionId: execution.id, certificationHash }); }
-    catch (reportError) { console.error("IRIS user report inventory materialization failed after certification:", reportError); }
-    return { ...run, id: run.id, status: "CERTIFIED", execution_id: execution.id, result, certified: true, certification_hash: certificationHash, certification_gate: gate };
+    catch (reportError) { return await failPublication(run.id, execution.id, userId, "REPORT_PUBLICATION_FAILED", reportError); }
+    try { await publicationRpc("iris_publication_mark_published", { p_run_id: run.id, p_execution_id: execution.id, p_user_id: userId }); }
+    catch (publicationStateError) { return await failPublication(run.id, execution.id, userId, "PUBLICATION_STATE_PERSISTENCE_FAILED", publicationStateError); }
+
+    return { ...run, id: run.id, status: "CERTIFIED", execution_id: execution.id, result, certified: true, certification_hash: certificationHash, certification_gate: gate, publication_status: "PUBLISHED" };
   } catch (error) { await failExecution(run.id, execution.id, userId, "INTELLIGENCE_EXECUTION_FAILED", errorText(error)); throw error; }
 }
 
