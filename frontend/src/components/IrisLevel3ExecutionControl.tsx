@@ -26,13 +26,14 @@ export function IrisLevel3ExecutionControl() {
     setError(null);
     try {
       const result = await api.runIrisLevel3();
-      if (!result?.run_id) throw new Error("IRIS did not return a Level 3 execution identity.");
+      const runId = result?.run_id ?? result?.id;
+      if (!runId) throw new Error("IRIS did not return a Level 3 execution identity.");
       if (result.certified !== true) {
-        setMessage(`Level 3 execution ${result.run_id} completed but is not certified. No unpublished result was presented as certified.`);
+        setMessage(`Level 3 execution ${runId} completed but is not certified. No unpublished result was presented as certified.`);
         return;
       }
-      setMessage(`Level 3 execution ${result.run_id} is certified. Reloading the governed hierarchy…`);
-      window.dispatchEvent(new CustomEvent("iris-level3-executed", { detail: result }));
+      setMessage(`Level 3 execution ${runId} is certified. Reloading the governed hierarchy…`);
+      window.dispatchEvent(new CustomEvent("iris-level3-executed", { detail: { ...result, run_id: runId } }));
       window.setTimeout(() => window.location.reload(), 500);
     } catch (e) {
       const detail = e instanceof IrisApiError ? e.message : e instanceof Error ? e.message : "Level 3 recursive intelligence execution failed.";
