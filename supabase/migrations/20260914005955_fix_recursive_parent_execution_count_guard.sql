@@ -51,7 +51,7 @@ begin
     select count(*) into v_parent_evidence_count from public.iris_run_evidence where run_id=v_parent_run_id and user_id=new.user_id and evidence_hash is not null;
     if v_parent_evidence_count=0 then raise exception 'IRIS_CERTIFICATION_GATE: Level 1 source evidence lineage is missing'; end if;
   elsif v_parent_level=1 then
-    begin v_parent_run_id := nullif(new.evidence_snapshot->>'parent_level1_run_id')::uuid; exception when others then v_parent_run_id := null; end;
+    begin v_parent_run_id := nullif(new.evidence_snapshot->>'parent_level1_run_id','')::uuid; exception when others then v_parent_run_id := null; end;
     if v_parent_run_id is null then raise exception 'IRIS_CERTIFICATION_GATE: parent evidence lineage missing'; end if;
     select count(*) into v_evidence_count from public.iris_run_evidence where run_id=v_parent_run_id and user_id=new.user_id and evidence_hash is not null;
     if v_evidence_count=0 then raise exception 'IRIS_CERTIFICATION_GATE: parent run evidence not attached'; end if;
