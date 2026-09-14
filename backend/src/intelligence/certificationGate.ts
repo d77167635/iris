@@ -49,17 +49,19 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
   check("iris.evidence.boundary", !!run?.as_of && !!run?.evidence_boundary && !!run?.evidence_manifest_hash, "Explicit evidence boundary and manifest hash are persisted.", "Evidence boundary or manifest hash is missing.");
 
   const rawIds = (evidence ?? []).map(e => e.raw_observation_id).filter((id): id is string => typeof id === "string");
+  const runEvidenceIds = (evidence ?? []).map(e => e.id).filter((id): id is string => typeof id === "string");
   const { data: lineage } = rawIds.length
     ? await supabaseAdmin.from("iris_data_lineage").select("id,user_id,source_id,destination_id,evidence_state").eq("user_id", userId).in("source_id", rawIds.slice(0, 5000)).limit(5000)
     : { data: [] as any[] };
 
   // The durable execution lineage is the authoritative runtime lineage for a governed
-  // intelligence run. It explicitly records SOURCE_EVIDENCE edges from run_evidence to
-  // capability outputs. The legacy provider lineage table may be empty even when the
-  // actual governed execution lineage is complete; do not certify from an unrelated
-  // table or fabricate provider lineage rows.
+  // intelligence run. SOURCE_EVIDENCE rows intentionally point to iris_run_evidence IDs,
+  // not provider raw-observation IDs. Certification therefore validates against the exact
+  // persisted run-evidence identifiers and never fabricates a legacy provider-lineage row.
   const sourceEvidenceLineage = (executionLineage ?? []).filter(row => row.lineage_role === "SOURCE_EVIDENCE" && row.source_type === "run_evidence" && typeof row.source_id === "string");
-  check("iris.lineage.present", !executionLineageError && sourceEvidenceLineage.length > 0 && sourceEvidenceLineage.every(l => l.user_id === userId && rawIds.length === 0 || rawIds.includes(l.source_id)), "User-owned provider evidence is attached to the actual governed execution lineage.", "No user-owned provider evidence lineage is attached to the governed execution.");
+  const sourceEvidenceIds = new Set(sourceEvidenceLineage.map(row => row.source_id));
+  const sourceEvidenceComplete = runEvidenceIds.length > 0 && runEvidenceIds.every(id => sourceEvidenceIds.has(id));
+  check("iris.lineage.present", !executionLineageError && sourceEvidenceLineage.length > 0 && sourceEvidenceComplete, "Every user-owned run-evidence record is attached to the actual governed execution lineage.", "Persisted execution lineage does not attach every governed run-evidence record to the execution.");
 
   const domainsByItem = new Map<string, Set<string>>();
   for (const row of currentProviderRows ?? []) {
