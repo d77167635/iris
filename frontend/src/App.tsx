@@ -3,7 +3,6 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./api/supabase";
 import { Auth } from "./components/Auth";
 import { IrisHierarchyExperience } from "./components/IrisHierarchyExperience";
-import { IrisLevel3PublishedGraph } from "./components/IrisLevel3PublishedGraph";
 import "./iris-ui.css";
 
 function authCallbackKind() { return new URLSearchParams(window.location.search).get("iris_auth"); }
@@ -11,7 +10,7 @@ function isRecoveryUrl() { const p = new URLSearchParams(window.location.search)
 function clearAuthCallback() { window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}`); }
 
 function AuthenticatedIris() {
-  return <><IrisHierarchyExperience /><IrisLevel3PublishedGraph /></>;
+  return <IrisHierarchyExperience />;
 }
 
 export default function App() {
