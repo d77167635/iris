@@ -15,7 +15,7 @@ type RelatedFact = {
   evidence_boundary?: string | null;
 };
 type RelatedContent = { state?: string; domains?: string[]; facts?: RelatedFact[]; cross_domain?: Array<{ key?: string; name?: string; state?: string; value?: Record<string, unknown>; domains?: string[] }>; evidence_boundary?: string | null; source?: string };
-type Node = { id: string; capability_id: string; intelligence_name?: string | null; intelligence_key?: string | null; value?: unknown; evidence_state?: string; confidence?: number | null; recursive_depth?: number | null; upstream_node_ids?: string[]; related_content?: RelatedContent };
+type Node = { id: string; capability_id: string; intelligence_name?: string | null; intelligence_key?: string | null; value?: unknown; evidence_state?: string; confidence?: number | null; recursive_depth?: number | null; evidence_boundary?: string | null; upstream_node_ids?: string[]; related_content?: RelatedContent };
 type Edge = { id: string; from_node_id: string; to_node_id: string; relation_type?: string; evidence_state?: string; explanation?: string | null };
 type Level3 = { certified?: boolean; published?: boolean; status?: string; publication_status?: string; capability_count?: number; materialized?: { nodes?: number; edges?: number; compositions?: number }; nodes?: Node[]; edges?: Edge[]; parent_level2?: { run_id?: string; execution_id?: string; output_hash?: string } | null; related_content_contract?: string };
 
@@ -72,23 +72,17 @@ export function IrisLevel3PublishedGraph() {
         <div style={{ minWidth: 0 }}>
           {selected ? <article style={{ background: "#fff", border: "1px solid #e6e6e1", borderRadius: 20, padding: 22 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}><div><div style={{ fontSize: 12, color: "#777" }}>Depth {selected.recursive_depth ?? "—"} · {selected.upstream_node_ids?.length ?? 0} upstream relationships</div><h3 style={{ margin: "5px 0" }}>{selected.intelligence_name ?? capabilityName(selected.capability_id)}</h3><div style={{ color: "#777", fontSize: 13 }}>{selected.intelligence_key ?? selected.capability_id}</div></div><Badge muted={selected.evidence_state === "INSUFFICIENT_EVIDENCE"}>{pretty(selected.evidence_state ?? "INSUFFICIENT_EVIDENCE")}</Badge></div>
-
             <div style={{ marginTop: 22 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#777", marginBottom: 10 }}>Related financial content · actual certified Level 2 numbers</div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 10 }}>
               {(selected.related_content?.facts ?? []).filter(f => ["currency", "ratio", "integer", "number"].includes(f.value_type ?? "") || typeof f.value === "number").map((fact, index) => <div key={`${fact.field_key}-${index}`} style={{ border: "1px solid #e9e9e4", borderRadius: 15, padding: 14 }}><div style={{ fontSize: 11, color: "#777" }}>{pretty(fact.domain_key ?? "source")} · {fact.label ?? fact.field_key}</div><strong style={{ display: "block", fontSize: 21, marginTop: 5 }}>{numeric(fact.value, fact.value_type)}</strong><div style={{ fontSize: 10, color: "#777", marginTop: 6 }}>{fact.evidence_state ?? "INSUFFICIENT_EVIDENCE"} · {fact.derivation_operator ?? "observed"}</div></div>)}
             </div></div>
-
             <div style={{ marginTop: 20, borderTop: "1px solid #ecece7", paddingTop: 18 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#777", marginBottom: 10 }}>Supporting domains</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{(selected.related_content?.domains ?? []).map(domain => <span key={domain} style={{ border: "1px solid #deded9", borderRadius: 999, padding: "6px 10px", fontSize: 12 }}>{pretty(domain)}</span>)}</div></div>
-
             {selected.related_content?.cross_domain?.length ? <div style={{ marginTop: 20, borderTop: "1px solid #ecece7", paddingTop: 18 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#777", marginBottom: 10 }}>Supporting cross-domain intelligence</div>{selected.related_content.cross_domain.map((item, index) => <div key={`${item.key}-${index}`} style={{ padding: 12, borderRadius: 13, background: "#f7f7f4", marginBottom: 8 }}><strong>{item.name ?? item.key}</strong><div style={{ display: "flex", gap: 15, flexWrap: "wrap", marginTop: 6, fontSize: 13 }}>{Object.entries(item.value ?? {}).map(([key, value]) => <span key={key}><b>{pretty(key)}:</b> {money(value)}</span>)}</div></div>)}</div> : null}
-
             <div style={{ marginTop: 20, borderTop: "1px solid #ecece7", paddingTop: 18, fontSize: 12, color: "#777" }}><div>Evidence boundary: {selected.related_content?.evidence_boundary ?? selected.evidence_boundary ?? "—"}</div><div>Source: certified published Level 2 hierarchy · Supabase source lineage preserved</div></div>
           </article> : null}
         </div>
       </div>
-
       <div style={{ marginTop: 18, background: "#fff", border: "1px solid #e6e6e1", borderRadius: 20, padding: 20 }}><div style={{ fontSize: 12, fontWeight: 800, letterSpacing: ".08em", textTransform: "uppercase", color: "#777", marginBottom: 12 }}>Persisted relationships</div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 8 }}>{selectedEdges.map(edge => { const from = nodes.find(n => n.id === edge.from_node_id); const to = nodes.find(n => n.id === edge.to_node_id); return <button key={edge.id} onClick={() => setSelectedId(to?.id ?? from?.id ?? null)} style={{ textAlign: "left", border: "1px solid #e9e9e4", background: "#fafaf7", borderRadius: 13, padding: 12, cursor: "pointer" }}><b>{from?.intelligence_name ?? from?.capability_id ?? "Node"}</b><span style={{ display: "block", color: "#777", margin: "4px 0" }}>↓ {pretty(edge.relation_type ?? "relationship")} ↓</span><b>{to?.intelligence_name ?? to?.capability_id ?? "Node"}</b></button>; })}</div></div>
     </>}
-
     {data.parent_level2 ? <footer style={{ marginTop: 18, fontSize: 11, color: "#777" }}>Certified Level 2 parent: {data.parent_level2.run_id ?? "—"} · execution {data.parent_level2.execution_id ?? "—"} · output hash {data.parent_level2.output_hash ?? "—"}</footer> : null}
   </section>;
 }
