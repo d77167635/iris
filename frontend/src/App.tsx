@@ -3,11 +3,16 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./api/supabase";
 import { Auth } from "./components/Auth";
 import { IrisHierarchyExperience } from "./components/IrisHierarchyExperience";
+import { IrisLevel3PublishedGraph } from "./components/IrisLevel3PublishedGraph";
 import "./iris-ui.css";
 
 function authCallbackKind() { return new URLSearchParams(window.location.search).get("iris_auth"); }
 function isRecoveryUrl() { const p = new URLSearchParams(window.location.search); const h = new URLSearchParams(window.location.hash.replace(/^#/, "")); return p.get("iris_auth") === "recovery" || p.get("type") === "recovery" || h.get("type") === "recovery" || p.has("code"); }
 function clearAuthCallback() { window.history.replaceState(null, "", `${window.location.origin}${window.location.pathname}`); }
+
+function AuthenticatedIris() {
+  return <><IrisHierarchyExperience /><IrisLevel3PublishedGraph /></>;
+}
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null); const [checkedAuth, setCheckedAuth] = useState(false); const [recovery, setRecovery] = useState(isRecoveryUrl());
@@ -15,5 +20,5 @@ export default function App() {
   if (!checkedAuth) return <main style={{ minHeight: "100dvh", background: "#f7f7f5" }} />;
   if (recovery && session) return <Auth recovery onRecoveryComplete={() => { setRecovery(false); clearAuthCallback(); }} />;
   if (!session) return <Auth />;
-  return <IrisHierarchyExperience />;
+  return <AuthenticatedIris />;
 }
