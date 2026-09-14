@@ -29,10 +29,11 @@ export function IrisLevel3ExecutionControl() {
       if (!result?.run_id) throw new Error("IRIS did not return a Level 3 execution identity.");
       if (result.certified !== true) {
         setMessage(`Level 3 execution ${result.run_id} completed but is not certified. No unpublished result was presented as certified.`);
-      } else {
-        setMessage(`Level 3 execution ${result.run_id} is certified and available for hierarchy reload.`);
+        return;
       }
+      setMessage(`Level 3 execution ${result.run_id} is certified. Reloading the governed hierarchy…`);
       window.dispatchEvent(new CustomEvent("iris-level3-executed", { detail: result }));
+      window.setTimeout(() => window.location.reload(), 500);
     } catch (e) {
       const detail = e instanceof IrisApiError ? e.message : e instanceof Error ? e.message : "Level 3 recursive intelligence execution failed.";
       setError(detail);
