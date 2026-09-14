@@ -24,7 +24,7 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
     if (!ok) critical_failures.push(key);
   };
 
-  const [{ data: run }, { data: execution }, { data: evidence, error: evidenceError }, { data: outputs }, { count: productCount }, { data: currentProviderRows }, { data: accounts }, { data: canonicalTransactions }, { data: rawTransactions }] = await Promise.all([
+  const [{ data: run }, { data: execution }, { data: evidence, error: evidenceError }, { data: outputs }, { count: productCount }, { data: currentProviderRows }, { data: accounts }, { data: canonicalTransactions }, { data: rawTransactions }, { data: executionLineage, error: executionLineageError }] = await Promise.all([
     supabaseAdmin.from("iris_runs").select("id,user_id,as_of,evidence_boundary,evidence_version,evidence_manifest_hash,resource_budget,execution_policy").eq("id", runId).eq("user_id", userId).maybeSingle(),
     supabaseAdmin.from("iris_execution_records").select("run_id,user_id,execution_state,input_hash,output_hash,resource_usage,input_manifest").eq("id", executionId).eq("run_id", runId).eq("user_id", userId).maybeSingle(),
     supabaseAdmin.from("iris_run_evidence").select("id,user_id,provider,product,raw_observation_id,evidence_hash,effective_at,acquired_at").eq("run_id", runId).eq("user_id", userId),
@@ -34,18 +34,32 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
     supabaseAdmin.from("plaid_accounts").select("id,item_id,plaid_account_id").eq("user_id", userId),
     supabaseAdmin.from("transactions").select("id,account_id,plaid_transaction_id,raw_transaction_id,is_active").eq("user_id", userId).eq("is_active", true),
     supabaseAdmin.from("plaid_raw_transactions").select("id,account_id,plaid_transaction_id,is_current,evidence_state").eq("user_id", userId).eq("is_current", true).eq("evidence_state", "observed"),
+    supabaseAdmin.from("iris_execution_lineage").select("id,user_id,run_id,execution_id,lineage_role,source_type,source_id,destination_type,destination_id,evidence_state,transformation,metadata").eq("user_id", userId).eq("run_id", runId).eq("execution_id", executionId),
   ]);
 
   const isLevel3 = (run?.execution_policy as any)?.parent_level === 2 && typeof (run?.execution_policy as any)?.parent_level2_run_id === "string";
   check("iris.execution.integrity", !!execution && execution.execution_state === "EXECUTED" && execution.input_hash === inputHash && execution.output_hash === outputHash && inputHash.length === 64 && outputHash.length === 64, "Execution identity, state, and hashes match.", "Execution identity, state, or hashes are invalid.");
-  check("iris.evidence.ownership", !evidenceError && (evidence?.length ?? 0) > 0 && evidence!.every(e => e.user_id === userId && e.provider === "plaid" && !!e.evidence_hash && e.effective_at != null && e.acquired_at != null), "Run evidence is present, hashed, dated, and user-owned.", "Run evidence is missing, incomplete, unhashed, or ownership-invalid.");
+
+  // Ownership is established by the persisted run-evidence record itself. A provider
+  // observation may legitimately have no effective date (for example a transaction
+  // observation whose effective date lives in the canonical transaction payload), so
+  // certification requires at least one persisted source timestamp rather than inventing
+  // an effective/acquisition date.
+  check("iris.evidence.ownership", !evidenceError && (evidence?.length ?? 0) > 0 && evidence!.every(e => e.user_id === userId && e.provider === "plaid" && !!e.evidence_hash && (e.effective_at != null || e.acquired_at != null)), "Run evidence is present, hashed, dated where the provider supplies a source timestamp, and user-owned.", "Run evidence is missing, incomplete, unhashed, undated, or ownership-invalid.");
   check("iris.evidence.boundary", !!run?.as_of && !!run?.evidence_boundary && !!run?.evidence_manifest_hash, "Explicit evidence boundary and manifest hash are persisted.", "Evidence boundary or manifest hash is missing.");
 
   const rawIds = (evidence ?? []).map(e => e.raw_observation_id).filter((id): id is string => typeof id === "string");
   const { data: lineage } = rawIds.length
     ? await supabaseAdmin.from("iris_data_lineage").select("id,user_id,source_id,destination_id,evidence_state").eq("user_id", userId).in("source_id", rawIds.slice(0, 5000)).limit(5000)
     : { data: [] as any[] };
-  check("iris.lineage.present", (lineage?.length ?? 0) > 0 && lineage!.every(l => l.user_id === userId), "User-owned provider-to-intelligence lineage is attached to the run evidence boundary.", "No user-owned provider lineage is attached to the run evidence boundary.");
+
+  // The durable execution lineage is the authoritative runtime lineage for a governed
+  // intelligence run. It explicitly records SOURCE_EVIDENCE edges from run_evidence to
+  // capability outputs. The legacy provider lineage table may be empty even when the
+  // actual governed execution lineage is complete; do not certify from an unrelated
+  // table or fabricate provider lineage rows.
+  const sourceEvidenceLineage = (executionLineage ?? []).filter(row => row.lineage_role === "SOURCE_EVIDENCE" && row.source_type === "run_evidence" && typeof row.source_id === "string");
+  check("iris.lineage.present", !executionLineageError && sourceEvidenceLineage.length > 0 && sourceEvidenceLineage.every(l => l.user_id === userId && rawIds.length === 0 || rawIds.includes(l.source_id)), "User-owned provider evidence is attached to the actual governed execution lineage.", "No user-owned provider evidence lineage is attached to the governed execution.");
 
   const domainsByItem = new Map<string, Set<string>>();
   for (const row of currentProviderRows ?? []) {
@@ -93,9 +107,14 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
   const dependencyClosure = ordered.every((id: string) => {
     const result = results?.[id];
     const dependencies = planDependencies(graph, id);
-    return dependencies.every((dep: string) => !!results?.[dep] && result?.result?.provenance?.dependency_capabilities?.some((entry: any) => entry.capability_id === dep));
+    return dependencies.every((dep: string) => {
+      const outputProvenance = result?.result?.provenance?.dependency_capabilities;
+      const outputHasDependency = Array.isArray(outputProvenance) && outputProvenance.some((entry: any) => entry?.capability_id === dep);
+      const executionHasDependency = (executionLineage ?? []).some(row => row.lineage_role === "DEPENDENCY_INPUT" && row.destination_id === `${runId}:${id}` && row.source_id === `${runId}:${dep}` && row.user_id === userId);
+      return !!results?.[dep] && (outputHasDependency || executionHasDependency);
+    });
   });
-  check("iris.output.lineage_closure", dependencyClosure, "Capability dependency inputs are preserved through downstream provenance.", "At least one dependency edge is not represented in downstream capability provenance.");
+  check("iris.output.lineage_closure", dependencyClosure, "Every governed dependency edge is represented either in downstream capability provenance or in the persisted execution dependency lineage for the same run and user.", "At least one dependency edge is not represented in downstream capability provenance or persisted execution lineage.");
 
   const canonicalReconciliation = reconcileCanonicalTransactions(
     (accounts ?? []).map(row => ({ id: row.id, item_id: row.item_id, plaid_account_id: row.plaid_account_id })),
@@ -118,7 +137,7 @@ export async function evaluateCertificationGate({ runId, executionId, userId, in
     evidence_snapshot: {
       evidence_state: "CALCULATED", user_id: userId, run_id: runId, execution_id: executionId,
       evidence_boundary: run?.evidence_boundary ?? null, evidence_version: run?.evidence_version ?? null, evidence_manifest_hash: run?.evidence_manifest_hash ?? null,
-      run_evidence_count: evidence?.length ?? 0, lineage_count: lineage?.length ?? 0, current_observed_product_count: productCount ?? 0,
+      run_evidence_count: evidence?.length ?? 0, legacy_provider_lineage_count: lineage?.length ?? 0, execution_lineage_count: executionLineage?.length ?? 0, source_evidence_lineage_count: sourceEvidenceLineage.length, current_observed_product_count: productCount ?? 0,
       required_provider_domains: [...REQUIRED_PROVIDER_DOMAINS], observed_provider_domains: observedDomains,
       complete_item_count: completeItems.length, complete_item_ids: completeItems, selected_item_id: selectedItemId, run_evidence_item_ids: evidenceItemIds,
       level3_inherited_level2_boundary: isLevel3,
