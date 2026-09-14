@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "../config/supabase.js";
 import { getCapabilityOperator } from "./capabilityOperators.js";
+import { getSemanticDependencyContract } from "./semanticDependencyContract.js";
 
 export const CAPABILITY_PLANNER_VERSION = "iris-capability-planner-v8";
 const FULL_INTELLIGENCE_REQUEST = "iris.full_intelligence";
@@ -60,6 +61,17 @@ export type CapabilityPlan = {
 };
 
 function asStrings(value: unknown): string[] { return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : []; }
+
+/**
+ * The executable graph must contain every dependency required by both the
+ * persisted capability contract and the runtime semantic-dependency contract.
+ * Semantic requirements are therefore graph dependencies, not post-hoc reads.
+ */
+function governedDependencies(contract: CapabilityContract): string[] {
+  const declared = asStrings(contract.dependencies);
+  const semantic = getSemanticDependencyContract(contract.capability_id)?.requirements.map((requirement) => requirement.dependency_id) ?? [];
+  return [...new Set([...declared, ...semantic])];
+}
 
 /**
  * Resolve a request into the governed executable capability graph while also
@@ -123,7 +135,7 @@ export async function planCapabilities(userId: string, requested: string[], sele
     const contract = registry.get(id);
     if (!contract) { missing.add(id); limitations.push(`Missing governed capability contract for dependency: ${id}.`); return; }
     activePath.add(id);
-    for (const dep of asStrings(contract.dependencies)) visit(dep);
+    for (const dep of governedDependencies(contract)) visit(dep);
     activePath.delete(id); visited.add(id); ordered.push(id);
   };
   for (const id of expansion) visit(id);
@@ -149,8 +161,8 @@ export async function planCapabilities(userId: string, requested: string[], sele
   if (!observedProducts.length) limitations.push("No observed Plaid product domain is available to the planner for the selected evidence boundary.");
 
   const contractsUsed = ordered.map((id) => registry.get(id)!).filter(Boolean);
-  const edges = contractsUsed.reduce((n, c) => n + asStrings(c.dependencies).filter((d) => registry.has(d)).length, 0);
+  const edges = contractsUsed.reduce((n, c) => n + governedDependencies(c).filter((d) => registry.has(d)).length, 0);
   const nodes = ordered.length; const compositions = contractsUsed.filter((c) => c.recursive || c.cross_domain).length;
   const status = cycleDetected || missing.size || unsupported.length || !root || domains.length !== 8 || capabilities.length !== 19 ? "BLOCKED" : limitations.length ? "LIMITED" : "READY";
-  return { planner_version: CAPABILITY_PLANNER_VERSION, requested: requestedIds, ordered_capabilities: ordered, contracts: contractsUsed, missing_capabilities: [...missing], unsupported_capabilities: unsupported, cycle_detected: cycleDetected, hierarchy: { root, domains, capabilities, edges: hierarchyEdges }, evidence: { selected_item_id: selectedItemId, observed_products: observedProducts, observed_product_count: observedProducts.length, source_field_observation_count: fieldCount ?? 0 }, resource_estimate: { nodes, edges, compositions }, status, limitations };
+  return { planner_version: CAPABILITY_PLANNER_VERSION, requested: requestedIds, ordered_capabilities: ordered, contracts: contractsUsed.map((contract) => ({ ...contract, dependencies: governedDependencies(contract) })), missing_capabilities: [...missing], unsupported_capabilities: unsupported, cycle_detected: cycleDetected, hierarchy: { root, domains, capabilities, edges: hierarchyEdges }, evidence: { selected_item_id: selectedItemId, observed_products: observedProducts, observed_product_count: observedProducts.length, source_field_observation_count: fieldCount ?? 0 }, resource_estimate: { nodes, edges, compositions }, status, limitations };
 }
